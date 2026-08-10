@@ -1,6 +1,6 @@
 # React 조회조건 폼
 
-Ant Design과 react-hook-form으로 만든 스키마 기반 공통 조회조건 폼입니다. JavaScript/JSX만 사용합니다.
+Ant Design과 react-hook-form으로 만든 JSX composition 기반 공통 조회조건 폼입니다. JavaScript/JSX만 사용합니다.
 
 ## 실행
 
@@ -13,24 +13,33 @@ pnpm dev
 
 ## 페이지에서 사용하기
 
-페이지는 `rows` 스키마와 저장/조회 콜백을 전달합니다.
+페이지는 `SearchConditionForm` 안에 row, group, 타입별 필드를 직접 조립합니다.
 
 ```jsx
-<SearchConditionPanel
+<SearchConditionForm
   conditionKey="order-search"
-  rows={searchRows}
   defaultValues={{ status: 'active' }}
   savedConditions={savedConditions}
   onSearch={({ conditionKey, values }) => searchOrders(values)}
-  onSaveCondition={({ conditionKey, name, values }) => saveCondition({ conditionKey, name, values })}
-/>
+  onSaveCondition={({ conditionKey, name, values }) =>
+    saveCondition({ conditionKey, name, values })
+  }
+>
+  <SearchRow rowKey="basic" label="기본 조건" required>
+    <TextField name="keyword" label="검색어" placeholder="검색어 입력" />
+
+    <SearchGroup groupKey="status" label="진행 상태">
+      <SelectField name="status" label="진행 상태" options={statusOptions} />
+    </SearchGroup>
+  </SearchRow>
+</SearchConditionForm>
 ```
 
-`rows`는 `row → fields` 또는 `row → groups → fields` 구조입니다. `row.fields`는 중간 그룹 라벨이 없는 필드이며 저장 팝업에서 row 라벨 아래 하나로 합쳐집니다. 기본 타입은 `text`, `number`, `select`, `date`, `dateRange`, `checkbox`, `checkboxGroup`이며, 페이지 전용 컴포넌트는 필드의 `render`로 추가합니다. 특수 값은 `serialize`, `deserialize`, `formatDisplay`를 정의하면 저장, 복원, 팝업 표시에서도 같은 스키마를 사용할 수 있습니다.
+그룹에 포함되지 않은 필드는 저장 팝업에서 `SearchRow` 라벨 아래 하나로 합쳐집니다. 기본 입력은 `TextField`, `NumberField`, `SelectField`, `DateField`, `DateRangeField`, `CheckboxField`, `CheckboxGroupField`이며 페이지 전용 입력은 `CustomField`로 추가합니다.
 
-단일 `checkbox`는 체크된 경우에만 저장 팝업에 표시됩니다. `checkboxGroup`은 선택된 option의 label만 `/`로 연결하며 선택값이 없으면 표시하지 않습니다.
+특수 값은 `serialize`, `deserialize`, `formatDisplay`를 전달하면 저장, 복원, 팝업 표시에서도 같은 선언을 사용합니다. 단일 `CheckboxField`는 체크된 경우에만 표시되고, `CheckboxGroupField`는 선택된 option label만 `/`로 연결합니다.
 
-입력 UI는 `fields/` 아래 타입별 컴포넌트로 분리되어 있습니다. `ControlledField`가 `Controller`와 `Form.Item`을 공통 처리하고, `FieldRenderer`는 필드 타입을 해당 컴포넌트에 연결하는 registry 역할만 담당합니다.
+각 입력은 `fields/` 아래 타입별 컴포넌트로 분리되어 있습니다. `ControlledField`가 react-hook-form의 `Controller`와 Ant Design `Form.Item`을 공통 처리합니다.
 
 저장조건은 다음 형식으로 전달합니다.
 

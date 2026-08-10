@@ -1,7 +1,18 @@
 import { useMemo, useState } from 'react';
 import { App as AntdApp, Col, ConfigProvider, Input, Row, Table, Tag, Typography } from 'antd';
 import koKR from 'antd/locale/ko_KR';
-import SearchConditionPanel from './components/search-condition/SearchConditionPanel';
+import SearchConditionForm from './components/search-condition/SearchConditionForm';
+import SearchGroup from './components/search-condition/SearchGroup';
+import SearchRow from './components/search-condition/SearchRow';
+import {
+  CheckboxField,
+  CheckboxGroupField,
+  CustomField,
+  DateRangeField,
+  NumberField,
+  SelectField,
+  TextField,
+} from './components/search-condition/fields';
 
 const statusOptions = [
   { label: '대기', value: 'waiting' },
@@ -9,173 +20,123 @@ const statusOptions = [
   { label: '완료', value: 'done' },
 ];
 
-const searchRows = [
-  {
-    key: 'basic',
-    label: '기본 조건',
-    required: true,
-    fields: [
-      {
-        name: 'keyword',
-        label: '통합 검색',
-        type: 'text',
-        width: 170,
-        placeholder: '고객명 또는 번호',
-      },
-    ],
-    groups: [
-      {
-        key: 'period',
-        label: '조회 기간',
-        fields: [
-          {
-            name: 'dateType',
-            label: '날짜 기준',
-            type: 'select',
-            width: 118,
-            placeholder: '날짜 기준',
-            options: [
-              { label: '등록일', value: 'createdAt' },
-              { label: '수정일', value: 'updatedAt' },
-            ],
-          },
-          {
-            name: 'period',
-            label: '조회 기간',
-            type: 'dateRange',
-            width: 250,
-          },
-        ],
-      },
-      {
-        key: 'status',
-        label: '진행 상태',
-        fields: [
-          {
-            name: 'status',
-            label: '진행 상태',
-            type: 'select',
-            width: 140,
-            placeholder: '전체',
-            options: statusOptions,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    key: 'customer',
-    label: '고객 조건',
-    groups: [
-      {
-        key: 'customerInfo',
-        label: '고객 정보',
-        fields: [
-          {
-            name: 'customerName',
-            label: '고객명',
-            type: 'text',
-            width: 140,
-            placeholder: '고객명',
-          },
-          {
-            name: 'customerNumber',
-            label: '고객 번호',
-            type: 'text',
-            width: 150,
-            placeholder: '고객 번호',
-            rules: {
-              pattern: { value: /^[0-9-]*$/, message: '숫자와 하이픈만 입력할 수 있습니다.' },
-            },
-          },
-        ],
-      },
-      {
-        key: 'channel',
-        label: '접수 채널',
-        fields: [
-          {
-            name: 'channel',
-            label: '접수 채널',
-            type: 'select',
-            width: 140,
-            placeholder: '채널 선택',
-            options: [
-              { label: '온라인', value: 'online' },
-              { label: '전화', value: 'phone' },
-              { label: '방문', value: 'visit' },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    key: 'detail',
-    label: '상세 조건',
-    detail: true,
-    fields: [
-      {
-        name: 'urgent',
-        label: '긴급 여부',
-        type: 'checkbox',
-        text: '긴급 건만',
-        checkedText: '긴급 건만',
-        defaultValue: false,
-      },
-    ],
-    groups: [
-      {
-        key: 'amount',
-        label: '금액 범위',
-        fields: [
-          { name: 'minAmount', label: '최소 금액', type: 'number', width: 130, placeholder: '최소 금액' },
-          { name: 'maxAmount', label: '최대 금액', type: 'number', width: 130, placeholder: '최대 금액' },
-        ],
-      },
-      {
-        key: 'notificationChannels',
-        label: '알림 채널',
-        fields: [
-          {
-            name: 'notificationChannels',
-            label: '알림 채널',
-            type: 'checkboxGroup',
-            defaultValue: [],
-            options: [
-              { label: 'SMS', value: 'sms' },
-              { label: '이메일', value: 'email' },
-            ],
-          },
-        ],
-      },
-      {
-        key: 'manager',
-        label: '담당자 코드',
-        fields: [
-          {
-            name: 'managerCode',
-            label: '담당자 코드',
-            width: 150,
-            render: ({ controllerField }) => (
-              <Input
-                {...controllerField}
-                value={controllerField.value ?? ''}
-                allowClear
-                prefix="M-"
-                placeholder="코드 입력"
-                style={{ width: 150 }}
-              />
-            ),
-            serialize: (value) => String(value).trim().toUpperCase(),
-            deserialize: (value) => String(value).toLowerCase(),
-            formatDisplay: (value) => `M-${value}`,
-          },
-        ],
-      },
-    ],
-  },
+const dateTypeOptions = [
+  { label: '등록일', value: 'createdAt' },
+  { label: '수정일', value: 'updatedAt' },
 ];
+
+const channelOptions = [
+  { label: '온라인', value: 'online' },
+  { label: '전화', value: 'phone' },
+  { label: '방문', value: 'visit' },
+];
+
+const notificationOptions = [
+  { label: 'SMS', value: 'sms' },
+  { label: '이메일', value: 'email' },
+];
+
+const searchConditionFields = (
+  <>
+    <SearchRow rowKey="basic" label="기본 조건" required>
+      <TextField
+        name="keyword"
+        label="통합 검색"
+        width={170}
+        placeholder="고객명 또는 번호"
+      />
+
+      <SearchGroup groupKey="period" label="조회 기간">
+        <SelectField
+          name="dateType"
+          label="날짜 기준"
+          width={118}
+          placeholder="날짜 기준"
+          options={dateTypeOptions}
+        />
+        <DateRangeField name="period" label="조회 기간" width={250} />
+      </SearchGroup>
+
+      <SearchGroup groupKey="status" label="진행 상태">
+        <SelectField
+          name="status"
+          label="진행 상태"
+          width={140}
+          placeholder="전체"
+          options={statusOptions}
+        />
+      </SearchGroup>
+    </SearchRow>
+
+    <SearchRow rowKey="customer" label="고객 조건">
+      <SearchGroup groupKey="customerInfo" label="고객 정보">
+        <TextField name="customerName" label="고객명" width={140} placeholder="고객명" />
+        <TextField
+          name="customerNumber"
+          label="고객 번호"
+          width={150}
+          placeholder="고객 번호"
+          rules={{ pattern: { value: /^[0-9-]*$/, message: '숫자와 하이픈만 입력할 수 있습니다.' } }}
+        />
+      </SearchGroup>
+
+      <SearchGroup groupKey="channel" label="접수 채널">
+        <SelectField
+          name="channel"
+          label="접수 채널"
+          width={140}
+          placeholder="채널 선택"
+          options={channelOptions}
+        />
+      </SearchGroup>
+    </SearchRow>
+
+    <SearchRow rowKey="detail" label="상세 조건" detail>
+      <CheckboxField
+        name="urgent"
+        label="긴급 여부"
+        text="긴급 건만"
+        checkedText="긴급 건만"
+        defaultValue={false}
+      />
+
+      <SearchGroup groupKey="amount" label="금액 범위">
+        <NumberField name="minAmount" label="최소 금액" width={130} placeholder="최소 금액" />
+        <NumberField name="maxAmount" label="최대 금액" width={130} placeholder="최대 금액" />
+      </SearchGroup>
+
+      <SearchGroup groupKey="notificationChannels" label="알림 채널">
+        <CheckboxGroupField
+          name="notificationChannels"
+          label="알림 채널"
+          defaultValue={[]}
+          options={notificationOptions}
+        />
+      </SearchGroup>
+
+      <SearchGroup groupKey="manager" label="담당자 코드">
+        <CustomField
+          name="managerCode"
+          label="담당자 코드"
+          width={150}
+          render={({ controllerField }) => (
+            <Input
+              {...controllerField}
+              value={controllerField.value ?? ''}
+              allowClear
+              prefix="M-"
+              placeholder="코드 입력"
+              style={{ width: 150 }}
+            />
+          )}
+          serialize={(value) => String(value).trim().toUpperCase()}
+          deserialize={(value) => String(value).toLowerCase()}
+          formatDisplay={(value) => `M-${value}`}
+        />
+      </SearchGroup>
+    </SearchRow>
+  </>
+);
 
 const tableColumns = [
   { title: '번호', dataIndex: 'id', width: 80, align: 'center' },
@@ -228,14 +189,15 @@ function BusinessSearchPage() {
         </Col>
       </Row>
 
-      <SearchConditionPanel
+      <SearchConditionForm
         conditionKey="business-search"
         defaultValues={defaultValues}
-        rows={searchRows}
         savedConditions={savedConditions}
         onSaveCondition={handleSaveCondition}
         onSearch={handleSearch}
-      />
+      >
+        {searchConditionFields}
+      </SearchConditionForm>
 
       <section className="result-grid" aria-label="조회 결과">
         <Row className="result-grid__heading" align="middle" justify="space-between">

@@ -1,7 +1,8 @@
 import { DatePicker } from 'antd';
-import ControlledField, { getFieldLabel, getFieldWidth } from './ControlledField';
+import ControlledField, { getFieldLabel, getFieldWidth, resolveField } from './ControlledField';
 
-export default function DateField({ field }) {
+export default function DateField({ field: suppliedField, ...props }) {
+  const field = resolveField(suppliedField, props, 'date');
   return (
     <ControlledField
       field={field}
@@ -17,3 +18,5 @@ export default function DateField({ field }) {
     />
   );
 }
+
+DateField.fieldType = 'date';

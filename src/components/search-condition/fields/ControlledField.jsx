@@ -29,3 +29,7 @@ export function getFieldLabel(field) {
 export function getFieldWidth(field, fallback = 160) {
   return { width: field.width || fallback };
 }
+
+export function resolveField(suppliedField, props, type) {
+  return suppliedField || { ...props, type };
+}

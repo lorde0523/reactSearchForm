@@ -1,7 +1,8 @@
 import { Checkbox } from 'antd';
-import ControlledField from './ControlledField';
+import ControlledField, { resolveField } from './ControlledField';
 
-export default function CheckboxField({ field }) {
+export default function CheckboxField({ field: suppliedField, ...props }) {
+  const field = resolveField(suppliedField, props, 'checkbox');
   return (
     <ControlledField
       field={field}
@@ -19,3 +20,5 @@ export default function CheckboxField({ field }) {
     />
   );
 }
+
+CheckboxField.fieldType = 'checkbox';

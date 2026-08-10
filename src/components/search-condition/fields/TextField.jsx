@@ -1,7 +1,8 @@
 import { Input } from 'antd';
-import ControlledField, { getFieldLabel, getFieldWidth } from './ControlledField';
+import ControlledField, { getFieldLabel, getFieldWidth, resolveField } from './ControlledField';
 
-export default function TextField({ field }) {
+export default function TextField({ field: suppliedField, ...props }) {
+  const field = resolveField(suppliedField, props, 'text');
   return (
     <ControlledField
       field={field}
@@ -18,3 +19,5 @@ export default function TextField({ field }) {
     />
   );
 }
+
+TextField.fieldType = 'text';

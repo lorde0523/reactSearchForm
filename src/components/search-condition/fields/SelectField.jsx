@@ -1,7 +1,8 @@
 import { Select } from 'antd';
-import ControlledField, { getFieldLabel, getFieldWidth } from './ControlledField';
+import ControlledField, { getFieldLabel, getFieldWidth, resolveField } from './ControlledField';
 
-export default function SelectField({ field }) {
+export default function SelectField({ field: suppliedField, ...props }) {
+  const field = resolveField(suppliedField, props, 'select');
   return (
     <ControlledField
       field={field}
@@ -19,3 +20,5 @@ export default function SelectField({ field }) {
     />
   );
 }
+
+SelectField.fieldType = 'select';

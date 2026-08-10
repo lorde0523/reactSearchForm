@@ -1,6 +1,7 @@
-import ControlledField from './ControlledField';
+import ControlledField, { resolveField } from './ControlledField';
 
-export default function CustomField({ field }) {
+export default function CustomField({ field: suppliedField, ...props }) {
+  const field = resolveField(suppliedField, props, 'custom');
   return (
     <ControlledField
       field={field}
@@ -10,3 +11,5 @@ export default function CustomField({ field }) {
     />
   );
 }
+
+CustomField.fieldType = 'custom';
