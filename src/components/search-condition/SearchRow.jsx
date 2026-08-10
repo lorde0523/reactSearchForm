@@ -1,5 +1,5 @@
 import { Children, useContext } from 'react';
-import { Space, Typography } from 'antd';
+import { Col, Row, Space, Typography } from 'antd';
 import SearchGroup from './SearchGroup';
 import { DetailVisibilityContext } from './SearchConditionContext';
 
@@ -11,20 +11,24 @@ export default function SearchRow({ label, required, detail, detailOpen, childre
   const fields = childItems.filter((child) => child.type !== SearchGroup);
 
   return (
-    <div className={`condition-row${detail && !isDetailOpen ? ' condition-row--hidden' : ''}`}>
-      <div className="condition-row__label">
+    <Row
+      align="middle"
+      className={`flex-group condition-row${detail && !isDetailOpen ? ' condition-row--hidden' : ''}`}
+      wrap={false}
+    >
+      <Col className="category-name condition-row__label" flex="112px">
         <Typography.Text strong>{label}</Typography.Text>
         {required && <span className="required-mark" aria-label="필수">*</span>}
-      </div>
-      <div className="condition-row__groups">
+      </Col>
+      <Row className="category-list condition-row__groups" align="middle" wrap>
         {fields.length > 0 && (
-          <div className="condition-group condition-group--ungrouped">
+          <Col className="category-item condition-group condition-group--ungrouped" flex="none">
             <Space align="start" size={8} wrap>{fields}</Space>
-          </div>
+          </Col>
         )}
         {groups}
-      </div>
-    </div>
+      </Row>
+    </Row>
   );
 }
 
