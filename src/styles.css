@@ -1,0 +1,110 @@
+:root {
+  font-family: Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f4f6f9;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: #f4f6f9; }
+button, input { font: inherit; }
+
+.app-shell {
+  width: min(1480px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+.page-heading { margin-bottom: 16px; }
+.page-heading .ant-typography { margin: 0; }
+
+.search-panel {
+  overflow: hidden;
+  min-height: 124px;
+  background: #fff;
+  border: 1px solid #d9dee8;
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgb(31 45 61 / 5%);
+}
+
+.search-panel__layout { width: 100%; }
+.favorite-box, .search-actions { padding: 16px; background: #fbfcfe; }
+.favorite-box { border-right: 1px solid #e4e8ef; }
+.favorite-box .ant-btn { padding-inline: 4px; color: #d89614; }
+.favorite-box__select { width: 100%; margin-top: 10px; }
+
+.condition-box { min-width: 0; padding: 12px 18px; }
+.condition-row { min-height: 48px; border-bottom: 1px solid #edf0f4; }
+.condition-row:last-child { border-bottom: 0; }
+
+.condition-row__label {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  padding-right: 16px;
+  color: #283348;
+  white-space: nowrap;
+}
+
+.required-mark { margin-left: 4px; color: #ff4d4f; }
+.condition-row__groups { min-width: 0; padding: 7px 0; }
+.condition-group { min-width: 0; }
+.condition-group__label { min-width: 68px; padding-top: 6px; white-space: nowrap; }
+.condition-group__label .ant-typography { color: #526079; font-size: 13px; font-weight: 600; }
+.condition-field { margin: 0; }
+.condition-field .ant-form-item-explain { max-width: 220px; font-size: 12px; }
+
+.search-actions { border-left: 1px solid #e4e8ef; }
+.search-actions__buttons { height: 100%; align-content: center; }
+.search-actions .ant-btn-text { color: #4c5a70; }
+
+.result-grid {
+  margin-top: 16px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #d9dee8;
+  border-radius: 8px;
+}
+
+.result-grid__heading { padding: 14px 16px; border-bottom: 1px solid #e4e8ef; }
+.result-grid__heading .ant-typography { margin: 0; }
+.result-grid .ant-table-wrapper { margin: -1px; }
+.query-debug { padding: 12px 16px; border-top: 1px solid #e4e8ef; color: #536078; font-size: 13px; }
+.query-debug pre { overflow-x: auto; margin-bottom: 0; padding: 12px; background: #f6f8fb; border-radius: 6px; }
+
+.save-modal__name { margin: 8px 0 20px; }
+.save-modal__divider { margin: 20px 0 14px; }
+.save-preview { overflow: hidden; border: 1px solid #d9dee8; border-radius: 6px; }
+.save-preview__empty { padding: 36px 16px; color: #8c8c8c; text-align: center; border: 1px solid #d9dee8; border-radius: 6px; }
+.save-preview__row { display: flex; border-bottom: 1px solid #e8ebf0; }
+.save-preview__row:last-child { border-bottom: 0; }
+.save-preview__row-label { width: 112px; flex: 0 0 112px; padding: 12px; background: #f7f9fc; font-weight: 700; }
+.save-preview__groups { min-width: 0; flex: 1; }
+.save-preview__group { min-height: 42px; border-bottom: 1px solid #edf0f4; }
+.save-preview__group:last-child { border-bottom: 0; }
+.save-preview__group-label { padding: 10px 12px; color: #526079; font-weight: 600; }
+.save-preview__field { display: flex; gap: 12px; padding: 10px 12px; }
+.save-preview__field + .save-preview__field { border-top: 1px dashed #edf0f4; }
+.save-preview__field-name { width: 100px; flex: 0 0 100px; color: #7a8598; }
+
+@media (max-width: 1100px) {
+  .search-actions { padding: 10px 16px; border-top: 1px solid #e4e8ef; border-left: 0; }
+}
+
+@media (max-width: 760px) {
+  .app-shell { width: min(100% - 24px, 1480px); padding-top: 16px; }
+  .favorite-box { border-right: 0; border-bottom: 1px solid #e4e8ef; }
+  .condition-row { display: block; padding: 8px 0 12px; }
+  .condition-row__label { min-height: 32px; }
+  .condition-group { width: 100%; }
+  .condition-group > .ant-row { flex-wrap: wrap; }
+  .condition-group__label { width: 100%; padding-bottom: 6px; }
+  .condition-group .ant-space,
+  .condition-group .ant-picker,
+  .condition-group .ant-select,
+  .condition-group .ant-input,
+  .condition-group .ant-input-affix-wrapper,
+  .condition-group .ant-input-number { width: 100% !important; }
+  .save-preview__row { display: block; }
+  .save-preview__row-label { width: 100%; }
+}

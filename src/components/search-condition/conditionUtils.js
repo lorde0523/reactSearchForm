@@ -1,0 +1,130 @@
+import dayjs from 'dayjs';
+
+export const DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
+
+export function isEmptyValue(value) {
+  if (value === undefined || value === null) return true;
+  if (typeof value === 'string') return value.trim() === '';
+  if (Array.isArray(value)) return value.length === 0 || value.every(isEmptyValue);
+  return false;
+}
+
+function isActiveFieldValue(value, field) {
+  if (field.type === 'checkbox' && value === false && !field.includeFalsy) return false;
+  return !isEmptyValue(value);
+}
+
+export function serializeFieldValue(value, field) {
+  if (field.serialize) return field.serialize(value, field);
+
+  if (field.type === 'date') {
+    const date = dayjs(value);
+    return date.isValid() ? date.format(field.format || DEFAULT_DATE_FORMAT) : undefined;
+  }
+
+  if (field.type === 'dateRange') {
+    if (!Array.isArray(value)) return undefined;
+    const dates = value.map((item) => dayjs(item));
+    if (dates.some((date) => !date.isValid())) return undefined;
+    return dates.map((date) => date.format(field.format || DEFAULT_DATE_FORMAT));
+  }
+
+  return value;
+}
+
+export function deserializeFieldValue(value, field) {
+  if (field.deserialize) return field.deserialize(value, field);
+  if (field.type === 'date') return value ? dayjs(value) : undefined;
+  if (field.type === 'dateRange') {
+    return Array.isArray(value) ? value.map((item) => dayjs(item)) : undefined;
+  }
+  return value;
+}
+
+export function formatFieldValue(value, field) {
+  if (field.formatDisplay) return field.formatDisplay(value, field);
+
+  if (field.type === 'select') {
+    const selectedValues = Array.isArray(value) ? value : [value];
+    return selectedValues
+      .map((selected) => field.options?.find((option) => option.value === selected)?.label ?? selected)
+      .join(', ');
+  }
+
+  if (field.type === 'dateRange') return Array.isArray(value) ? value.join(' ~ ') : '';
+  if (field.type === 'checkbox') return value ? field.checkedText || field.text || '선택' : '선택 안 함';
+  if (Array.isArray(value)) return value.join(', ');
+  return String(value);
+}
+
+export function flattenFields(rows) {
+  return rows.flatMap((row) => row.groups.flatMap((group) => group.fields));
+}
+
+export function buildDefaultValues(rows, suppliedDefaults = {}) {
+  const schemaDefaults = Object.fromEntries(
+    flattenFields(rows)
+      .filter((field) => field.defaultValue !== undefined)
+      .map((field) => [field.name, field.defaultValue]),
+  );
+
+  return { ...schemaDefaults, ...suppliedDefaults };
+}
+
+export function createConditionSnapshot(rows, formValues) {
+  const values = {};
+  const preview = [];
+
+  rows.forEach((row) => {
+    const previewGroups = [];
+
+    row.groups.forEach((group) => {
+      const previewFields = [];
+
+      group.fields.forEach((field) => {
+        const currentValue = formValues[field.name];
+        if (!isActiveFieldValue(currentValue, field)) return;
+
+        const serializedValue = serializeFieldValue(currentValue, field);
+        if (isEmptyValue(serializedValue)) return;
+
+        values[field.name] = serializedValue;
+        previewFields.push({
+          name: field.name,
+          label: field.label || field.placeholder || field.name,
+          value: formatFieldValue(serializedValue, field),
+        });
+      });
+
+      if (previewFields.length) {
+        previewGroups.push({
+          key: group.key,
+          label: group.label,
+          fields: previewFields,
+        });
+      }
+    });
+
+    if (previewGroups.length) {
+      preview.push({
+        key: row.key,
+        label: row.label,
+        groups: previewGroups,
+      });
+    }
+  });
+
+  return { values, preview };
+}
+
+export function hydrateSavedValues(rows, savedValues, defaults = {}) {
+  const fieldsByName = new Map(flattenFields(rows).map((field) => [field.name, field]));
+  const hydrated = { ...defaults };
+
+  Object.entries(savedValues || {}).forEach(([name, value]) => {
+    const field = fieldsByName.get(name);
+    if (field) hydrated[name] = deserializeFieldValue(value, field);
+  });
+
+  return hydrated;
+}
