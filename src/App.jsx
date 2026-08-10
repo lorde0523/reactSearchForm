@@ -14,6 +14,15 @@ const searchRows = [
     key: 'basic',
     label: '기본 조건',
     required: true,
+    fields: [
+      {
+        name: 'keyword',
+        label: '통합 검색',
+        type: 'text',
+        width: 170,
+        placeholder: '고객명 또는 번호',
+      },
+    ],
     groups: [
       {
         key: 'period',
@@ -105,6 +114,16 @@ const searchRows = [
     key: 'detail',
     label: '상세 조건',
     detail: true,
+    fields: [
+      {
+        name: 'urgent',
+        label: '긴급 여부',
+        type: 'checkbox',
+        text: '긴급 건만',
+        checkedText: '긴급 건만',
+        defaultValue: false,
+      },
+    ],
     groups: [
       {
         key: 'amount',
@@ -115,16 +134,18 @@ const searchRows = [
         ],
       },
       {
-        key: 'urgent',
-        label: '처리 구분',
+        key: 'notificationChannels',
+        label: '알림 채널',
         fields: [
           {
-            name: 'urgent',
-            label: '긴급 여부',
-            type: 'checkbox',
-            text: '긴급 건만',
-            checkedText: '긴급 건',
-            defaultValue: false,
+            name: 'notificationChannels',
+            label: '알림 채널',
+            type: 'checkboxGroup',
+            defaultValue: [],
+            options: [
+              { label: 'SMS', value: 'sms' },
+              { label: '이메일', value: 'email' },
+            ],
           },
         ],
       },

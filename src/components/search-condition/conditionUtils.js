@@ -51,6 +51,13 @@ export function formatFieldValue(value, field) {
       .join(', ');
   }
 
+  if (field.type === 'checkboxGroup') {
+    if (!Array.isArray(value)) return '';
+    return value
+      .map((selected) => field.options?.find((option) => option.value === selected)?.label ?? selected)
+      .join(' / ');
+  }
+
   if (field.type === 'dateRange') return Array.isArray(value) ? value.join(' ~ ') : '';
   if (field.type === 'checkbox') return value ? field.checkedText || field.text || '선택' : '선택 안 함';
   if (Array.isArray(value)) return value.join(', ');
@@ -58,7 +65,10 @@ export function formatFieldValue(value, field) {
 }
 
 export function flattenFields(rows) {
-  return rows.flatMap((row) => row.groups.flatMap((group) => group.fields));
+  return rows.flatMap((row) => [
+    ...(row.fields || []),
+    ...(row.groups || []).flatMap((group) => group.fields),
+  ]);
 }
 
 export function buildDefaultValues(rows, suppliedDefaults = {}) {
@@ -75,13 +85,10 @@ export function createConditionSnapshot(rows, formValues) {
   const values = {};
   const preview = [];
 
-  rows.forEach((row) => {
-    const previewGroups = [];
+  const collectFields = (fields) => {
+    const previewFields = [];
 
-    row.groups.forEach((group) => {
-      const previewFields = [];
-
-      group.fields.forEach((field) => {
+    fields.forEach((field) => {
         const currentValue = formValues[field.name];
         if (!isActiveFieldValue(currentValue, field)) return;
 
@@ -92,26 +99,35 @@ export function createConditionSnapshot(rows, formValues) {
         previewFields.push({
           name: field.name,
           label: field.label || field.placeholder || field.name,
+          type: field.type,
           value: formatFieldValue(serializedValue, field),
         });
+    });
+
+    return previewFields;
+  };
+
+  rows.forEach((row) => {
+    const ungroupedFields = collectFields(row.fields || []);
+    if (ungroupedFields.length) {
+      preview.push({
+        key: `${row.key}-ungrouped`,
+        label: row.label,
+        fields: ungroupedFields,
       });
+    }
+
+    (row.groups || []).forEach((group) => {
+      const previewFields = collectFields(group.fields);
 
       if (previewFields.length) {
-        previewGroups.push({
-          key: group.key,
+        preview.push({
+          key: `${row.key}-${group.key}`,
           label: group.label,
           fields: previewFields,
         });
       }
     });
-
-    if (previewGroups.length) {
-      preview.push({
-        key: row.key,
-        label: row.label,
-        groups: previewGroups,
-      });
-    }
   });
 
   return { values, preview };

@@ -86,6 +86,20 @@ export default function FieldRenderer({ field }) {
           );
         }
 
+        if (field.type === 'checkboxGroup') {
+          return (
+            <Form.Item {...formItemProps}>
+              <Checkbox.Group
+                name={controllerField.name}
+                options={field.options}
+                value={controllerField.value || []}
+                onBlur={controllerField.onBlur}
+                onChange={controllerField.onChange}
+              />
+            </Form.Item>
+          );
+        }
+
         if (field.type === 'number') {
           return (
             <Form.Item {...formItemProps}>

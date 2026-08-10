@@ -10,6 +10,7 @@ import {
   Row,
   Select,
   Space,
+  Table,
   Typography,
 } from 'antd';
 import { DownOutlined, SearchOutlined, StarFilled, UpOutlined } from '@ant-design/icons';
@@ -26,29 +27,34 @@ function PreviewContent({ preview }) {
     return <div className="save-preview__empty">입력된 조회조건이 없습니다.</div>;
   }
 
+  const columns = [
+    {
+      title: '조회 항목',
+      dataIndex: 'label',
+      key: 'label',
+      width: 150,
+      className: 'save-preview__label',
+    },
+    {
+      title: '조회 값',
+      key: 'value',
+      render: (_, row) => row.fields.map((field) => {
+        const valueOnly = field.type === 'checkbox' || row.fields.length === 1;
+        return valueOnly ? field.value : `${field.label}: ${field.value}`;
+      }).join(' / '),
+    },
+  ];
+
   return (
-    <div className="save-preview">
-      {preview.map((row) => (
-        <section className="save-preview__row" key={row.key}>
-          <div className="save-preview__row-label">{row.label}</div>
-          <div className="save-preview__groups">
-            {row.groups.map((group) => (
-              <Row className="save-preview__group" key={group.key} wrap={false}>
-                <Col className="save-preview__group-label" flex="130px">{group.label}</Col>
-                <Col flex="auto">
-                  {group.fields.map((field) => (
-                    <div className="save-preview__field" key={field.name}>
-                      <span className="save-preview__field-name">{field.label}</span>
-                      <span>{field.value}</span>
-                    </div>
-                  ))}
-                </Col>
-              </Row>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
+    <Table
+      bordered
+      className="save-preview"
+      columns={columns}
+      dataSource={preview}
+      pagination={false}
+      rowKey="key"
+      size="small"
+    />
   );
 }
 
@@ -151,7 +157,16 @@ export default function SearchConditionPanel({
                 </Col>
                 <Col className="condition-row__groups" flex="auto">
                   <Row align="middle" gutter={[28, 8]}>
-                    {row.groups.map((group) => (
+                    {(row.fields || []).length > 0 && (
+                      <Col className="condition-group condition-group--ungrouped" flex="none">
+                        <Space align="start" size={8} wrap>
+                          {row.fields.map((field) => (
+                            <FieldRenderer field={field} key={field.name} />
+                          ))}
+                        </Space>
+                      </Col>
+                    )}
+                    {(row.groups || []).map((group) => (
                       <Col className="condition-group" flex="none" key={group.key}>
                         <Row align="top" gutter={10} wrap={false}>
                           <Col className="condition-group__label" flex="none">

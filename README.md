@@ -26,7 +26,9 @@ pnpm dev
 />
 ```
 
-`rows`는 `row → group → fields` 구조입니다. 기본 타입은 `text`, `number`, `select`, `date`, `dateRange`, `checkbox`이며, 페이지 전용 컴포넌트는 필드의 `render`로 추가합니다. 특수 값은 `serialize`, `deserialize`, `formatDisplay`를 정의하면 저장, 복원, 팝업 표시에서도 같은 스키마를 사용할 수 있습니다.
+`rows`는 `row → fields` 또는 `row → groups → fields` 구조입니다. `row.fields`는 중간 그룹 라벨이 없는 필드이며 저장 팝업에서 row 라벨 아래 하나로 합쳐집니다. 기본 타입은 `text`, `number`, `select`, `date`, `dateRange`, `checkbox`, `checkboxGroup`이며, 페이지 전용 컴포넌트는 필드의 `render`로 추가합니다. 특수 값은 `serialize`, `deserialize`, `formatDisplay`를 정의하면 저장, 복원, 팝업 표시에서도 같은 스키마를 사용할 수 있습니다.
+
+단일 `checkbox`는 체크된 경우에만 저장 팝업에 표시됩니다. `checkboxGroup`은 선택된 option의 label만 `/`로 연결하며 선택값이 없으면 표시하지 않습니다.
 
 저장조건은 다음 형식으로 전달합니다.
 
