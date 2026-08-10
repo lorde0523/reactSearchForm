@@ -30,6 +30,8 @@ pnpm dev
 
 단일 `checkbox`는 체크된 경우에만 저장 팝업에 표시됩니다. `checkboxGroup`은 선택된 option의 label만 `/`로 연결하며 선택값이 없으면 표시하지 않습니다.
 
+입력 UI는 `fields/` 아래 타입별 컴포넌트로 분리되어 있습니다. `ControlledField`가 `Controller`와 `Form.Item`을 공통 처리하고, `FieldRenderer`는 필드 타입을 해당 컴포넌트에 연결하는 registry 역할만 담당합니다.
+
 저장조건은 다음 형식으로 전달합니다.
 
 ```js
