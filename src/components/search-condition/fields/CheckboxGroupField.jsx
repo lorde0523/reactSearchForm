@@ -6,8 +6,9 @@ export default function CheckboxGroupField({ field: suppliedField, ...props }) {
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField }) => (
+      renderInput={({ controllerField, disabled }) => (
         <Checkbox.Group
+          disabled={disabled}
           name={controllerField.name}
           options={field.options}
           value={controllerField.value || []}

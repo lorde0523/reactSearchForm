@@ -155,6 +155,71 @@ pnpm dev
 />
 ```
 
+## 다른 필드값으로 disabled 제어
+
+모든 기본 필드는 고정 boolean `disabled`와 함수형 `disabled`를 지원합니다. 함수형 조건에서는 `dependencies`에 감시할 RHF 필드명을 지정합니다.
+
+```jsx
+<SelectField
+  name="dateType"
+  label="날짜 기준"
+  options={dateTypeOptions}
+/>
+
+<DateRangeField
+  name="period"
+  label="조회 기간"
+  dependencies={['dateType']}
+  disabled={({ values }) => !values.dateType}
+/>
+```
+
+여러 필드를 함께 사용할 수도 있습니다.
+
+```jsx
+<PeriodPickerField
+  name="monthRange"
+  label="월 범위"
+  picker="month"
+  range
+  dependencies={['dateType', 'status']}
+  disabled={({ values }) => (
+    !values.dateType || values.status === 'done'
+  )}
+/>
+```
+
+`disabled` 함수에는 `{ dependencyValues, field, form, name, values }`가 전달됩니다. `useWatch`는 `dependencies`에 지정된 필드만 구독하므로 관련 값이 변경될 때 해당 입력만 다시 계산됩니다.
+
+비활성화는 현재 값을 자동으로 지우지 않습니다. 값도 제거해야 한다면 원인이 되는 필드의 `onChange`에서 처리합니다.
+
+```jsx
+<SelectField
+  name="dateType"
+  label="날짜 기준"
+  onChange={(value, { form }) => {
+    if (!value) form.setValue('period', undefined);
+  }}
+/>
+```
+
+`CustomField`에는 계산된 `disabled`가 render 콜백으로 전달되므로 실제 커스텀 입력에 직접 연결합니다.
+
+```jsx
+<CustomField
+  name="customCode"
+  label="사용자 코드"
+  dependencies={['status']}
+  disabled={({ values }) => values.status === 'done'}
+  render={({ controllerField, disabled }) => (
+    <MyCustomInput
+      {...controllerField}
+      disabled={disabled}
+    />
+  )}
+/>
+```
+
 ## 서버에서 받은 초기값 적용
 
 서버 응답을 state에 넣고 `defaultValues`로 전달하면 응답 객체가 변경되는 시점에 RHF의 `reset()`으로 전체 필드에 적용됩니다.
