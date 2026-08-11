@@ -1,9 +1,10 @@
 import { Children, isValidElement } from 'react';
 
 function fieldFromElement(element) {
-  if (element.props.field) return element.props.field;
-  const { children, ...props } = element.props;
-  return { ...props, type: element.type.fieldType };
+  const { children, field: suppliedField, ...elementProps } = element.props;
+  const props = suppliedField || elementProps;
+  const type = element.type.getFieldType?.(props) || props.type || element.type.fieldType;
+  return { ...props, type };
 }
 
 export function createRowsFromChildren(children) {

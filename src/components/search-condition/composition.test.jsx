@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, expect, it } from 'vitest';
 import SearchGroup from './SearchGroup';
 import SearchRow from './SearchRow';
-import { CheckboxField, SelectField, TextField } from './fields';
+import { CheckboxField, PeriodPickerField, SelectField, TextField } from './fields';
 import { createRowsFromChildren } from './composition';
 
 describe('createRowsFromChildren', () => {
@@ -18,6 +18,9 @@ describe('createRowsFromChildren', () => {
           />
           <CheckboxField name="urgent" label="긴급" text="긴급 건만" />
         </SearchGroup>
+        <SearchGroup groupKey="period" label="기간">
+          <PeriodPickerField name="weekRange" label="주차 범위" picker="week" range />
+        </SearchGroup>
       </SearchRow>
     );
 
@@ -30,5 +33,11 @@ describe('createRowsFromChildren', () => {
       expect.objectContaining({ name: 'status', type: 'select' }),
       expect.objectContaining({ name: 'urgent', type: 'checkbox' }),
     ]);
+    expect(rows[0].groups[1].fields[0]).toMatchObject({
+      name: 'weekRange',
+      picker: 'week',
+      range: true,
+      type: 'weekRange',
+    });
   });
 });

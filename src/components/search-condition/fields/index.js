@@ -6,6 +6,7 @@ export { default as DateRangeField } from './DateRangeField';
 export { default as MonthPickerField } from './MonthPickerField';
 export { default as MonthRangePickerField } from './MonthRangePickerField';
 export { default as NumberField } from './NumberField';
+export { default as PeriodPickerField } from './PeriodPickerField';
 export { default as SelectField } from './SelectField';
 export { default as TextField } from './TextField';
 export { default as WeekPickerField } from './WeekPickerField';

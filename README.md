@@ -48,6 +48,21 @@ pnpm dev
 | `YearPickerField` | 연도 단일 | `YYYY` | `YYYY` |
 | `YearRangePickerField` | 연도 범위 | `YYYY` 배열 | `YYYY` |
 
+6개 개별 컴포넌트 대신 `PeriodPickerField` 하나로도 동일하게 작성할 수 있습니다. `picker`는 `week`, `month`, `year` 중 하나이며 `range`를 지정하면 범위 Picker가 됩니다.
+
+```jsx
+<PeriodPickerField name="week" label="기준 주차" picker="week" />
+<PeriodPickerField name="weekRange" label="주차 범위" picker="week" range />
+
+<PeriodPickerField name="month" label="기준 월" picker="month" />
+<PeriodPickerField name="monthRange" label="월 범위" picker="month" range />
+
+<PeriodPickerField name="year" label="기준 연도" picker="year" />
+<PeriodPickerField name="yearRange" label="연도 범위" picker="year" range />
+```
+
+통합 컴포넌트도 `initialValue`, `onChange`, `valueFormat`, `displayFormat`, `width`, `rules`를 동일하게 지원합니다. `valueFormat`과 `displayFormat`을 생략하면 위 표의 기본 포맷을 사용합니다.
+
 ```jsx
 <SearchGroup groupKey="pickerExamples" label="날짜 기준">
   <WeekPickerField name="week" label="기준 주차" />
