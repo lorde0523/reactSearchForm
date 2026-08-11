@@ -1,20 +1,26 @@
-export { default as AutoCompleteField } from './AutoCompleteField';
-export { default as CheckboxField } from './CheckboxField';
-export { default as CheckboxGroupField } from './CheckboxGroupField';
+export {
+  AutoCompleteField,
+  NumberField,
+  TextAreaField,
+  TextField,
+} from './InputFields';
+export {
+  CheckboxField,
+  CheckboxGroupField,
+  RadioButtonGroupField,
+  RadioGroupField,
+  SelectField,
+  SwitchField,
+} from './ChoiceFields';
 export { default as CustomField } from './CustomField';
-export { default as DateField } from './DateField';
-export { default as DateRangeField } from './DateRangeField';
-export { default as MonthPickerField } from './MonthPickerField';
-export { default as MonthRangePickerField } from './MonthRangePickerField';
-export { default as NumberField } from './NumberField';
-export { default as PeriodPickerField } from './PeriodPickerField';
-export { default as RadioButtonGroupField } from './RadioButtonGroupField';
-export { default as RadioGroupField } from './RadioGroupField';
-export { default as SelectField } from './SelectField';
-export { default as SwitchField } from './SwitchField';
-export { default as TextField } from './TextField';
-export { default as TextAreaField } from './TextAreaField';
-export { default as WeekPickerField } from './WeekPickerField';
-export { default as WeekRangePickerField } from './WeekRangePickerField';
-export { default as YearPickerField } from './YearPickerField';
-export { default as YearRangePickerField } from './YearRangePickerField';
+export {
+  DateField,
+  DateRangeField,
+  MonthPickerField,
+  MonthRangePickerField,
+  PeriodPickerField,
+  WeekPickerField,
+  WeekRangePickerField,
+  YearPickerField,
+  YearRangePickerField,
+} from './DateFields';

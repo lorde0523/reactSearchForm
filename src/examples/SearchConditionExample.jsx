@@ -1,7 +1,4 @@
 import { Input } from 'antd';
-import SearchConditionForm from '../components/search-condition/SearchConditionForm';
-import SearchGroup from '../components/search-condition/SearchGroup';
-import SearchRow from '../components/search-condition/SearchRow';
 import {
   AutoCompleteField,
   CheckboxField,
@@ -12,11 +9,14 @@ import {
   PeriodPickerField,
   RadioButtonGroupField,
   RadioGroupField,
+  SearchConditionForm,
+  SearchGroup,
+  SearchRow,
   SelectField,
   SwitchField,
   TextAreaField,
   TextField,
-} from '../components/search-condition/fields';
+} from '../components/search-condition';
 
 const statusOptions = [
   { label: '대기', value: 'waiting' },

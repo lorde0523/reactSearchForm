@@ -40,8 +40,6 @@ export const PICKER_CONFIGS = {
   },
 };
 
-export const PICKER_TYPES = Object.keys(PICKER_CONFIGS);
-
 export function getPickerFieldType(picker, range = false) {
   const type = `${picker}${range ? 'Range' : ''}`;
   if (!PICKER_CONFIGS[type]) {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { getFieldWidth, resolveFieldDisabled } from './ControlledField';
+import { getFieldWidth, resolveField, resolveFieldDisabled } from './ControlledField';
 
 describe('resolveFieldDisabled', () => {
   it('boolean disabled를 그대로 적용한다', () => {
@@ -31,6 +31,21 @@ describe('resolveFieldDisabled', () => {
     })).toEqual({
       color: 'red',
       width: 240,
+    });
+  });
+});
+
+describe('resolveField', () => {
+  it('컴포넌트 props와 field 설정을 병합하고 field 설정을 우선한다', () => {
+    expect(resolveField(
+      { label: '필드 라벨', width: 200 },
+      { name: 'keyword', width: 160 },
+      'text',
+    )).toEqual({
+      label: '필드 라벨',
+      name: 'keyword',
+      type: 'text',
+      width: 200,
     });
   });
 });

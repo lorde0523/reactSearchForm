@@ -1,10 +1,30 @@
 import { Children, isValidElement } from 'react';
 
+const RUNTIME_FIELD_PROPS = new Set([
+  'className',
+  'dependencies',
+  'disabled',
+  'formItemClassName',
+  'formItemStyle',
+  'onChange',
+  'render',
+  'rules',
+  'style',
+  'width',
+]);
+
+function createFieldSchema(props, type) {
+  return Object.fromEntries(
+    Object.entries({ ...props, type })
+      .filter(([key]) => !RUNTIME_FIELD_PROPS.has(key)),
+  );
+}
+
 function fieldFromElement(element) {
   const { children, field: suppliedField, ...elementProps } = element.props;
-  const props = suppliedField || elementProps;
+  const props = { ...elementProps, ...(suppliedField || {}) };
   const type = element.type.getFieldType?.(props) || props.type || element.type.fieldType;
-  return { ...props, type };
+  return createFieldSchema(props, type);
 }
 
 export function createRowsFromChildren(children) {

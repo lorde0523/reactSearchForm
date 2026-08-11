@@ -5,7 +5,7 @@ import { deserializeFieldValue } from '../conditionUtils';
 
 const EMPTY_DEPENDENCIES = [];
 
-export function normalizeChangeValue(value) {
+function normalizeChangeValue(value) {
   if (value && typeof value === 'object' && 'target' in value) {
     return value.target.type === 'checkbox' ? value.target.checked : value.target.value;
   }
@@ -96,5 +96,5 @@ export function getFieldWidth(field, fallback = 160) {
 }
 
 export function resolveField(suppliedField, props, type) {
-  return suppliedField || { ...props, type };
+  return { ...props, ...(suppliedField || {}), type };
 }
