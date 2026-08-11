@@ -12,13 +12,13 @@ import {
 } from 'antd';
 import { DownOutlined, ReloadOutlined, SearchOutlined, StarFilled, UpOutlined } from '@ant-design/icons';
 import { FormProvider, useForm } from 'react-hook-form';
-import { DetailVisibilityContext } from './SearchConditionContext';
-import { createRowsFromChildren } from './composition';
+import { DetailVisibilityContext } from '../model/SearchConditionContext';
+import { createRowsFromChildren } from '../model/composition';
 import {
   buildDefaultValues,
   createConditionSnapshot,
   hydrateSavedValues,
-} from './conditionUtils';
+} from '../model/conditionUtils';
 
 const EMPTY_VALUES = {};
 const EMPTY_CONDITIONS = [];

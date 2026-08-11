@@ -1,5 +1,5 @@
 import { DatePicker } from 'antd';
-import { PICKER_CONFIGS, getPickerFieldType } from '../pickerFormats';
+import { PICKER_CONFIGS, getPickerFieldType } from '../model/pickerFormats';
 import ControlledField, { getFieldLabel, getFieldWidth, resolveField } from './ControlledField';
 
 const { RangePicker } = DatePicker;

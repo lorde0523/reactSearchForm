@@ -1,7 +1,7 @@
 import { Children, useContext } from 'react';
 import { Col, Row, Space, Typography } from 'antd';
 import SearchGroup from './SearchGroup';
-import { DetailVisibilityContext } from './SearchConditionContext';
+import { DetailVisibilityContext } from '../model/SearchConditionContext';
 
 export default function SearchRow({ label, required, detail, detailOpen, children }) {
   const contextDetailOpen = useContext(DetailVisibilityContext);

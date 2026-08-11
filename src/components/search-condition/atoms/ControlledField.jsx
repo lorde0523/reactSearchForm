@@ -1,7 +1,7 @@
 import { Form } from 'antd';
 import { useEffect, useRef } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import { deserializeFieldValue } from '../conditionUtils';
+import { deserializeFieldValue } from '../model/conditionUtils';
 
 const EMPTY_DEPENDENCIES = [];
 

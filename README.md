@@ -11,6 +11,31 @@ pnpm dev
 
 검증은 `pnpm test`, `pnpm build`로 실행합니다.
 
+## Atomic Design 구조
+
+조회조건 모듈은 페이지와 분리된 공통 컴포넌트이며, 내부 구조는 다음과 같습니다.
+
+```text
+src/components/search-condition/
+├─ atoms/       # RHF Controller와 연결된 입력 필드
+├─ molecules/   # SearchGroup, SearchRow
+├─ organisms/   # SearchConditionForm
+├─ model/       # 초기값, 저장 스냅샷, picker 설정, context
+└─ index.js     # 페이지에서 사용하는 공개 API
+```
+
+페이지에서는 Atomic 내부 경로를 직접 참조하지 않고 공통 진입점만 import합니다.
+
+```jsx
+import {
+  SearchConditionForm,
+  SearchGroup,
+  SearchRow,
+  SelectField,
+  TextField,
+} from '../components/search-condition';
+```
+
 ## 페이지에서 사용하기
 
 페이지는 `SearchConditionForm` 안에 row, group, 타입별 필드를 직접 조립합니다.
