@@ -52,11 +52,14 @@ button, input { font: inherit; }
 
 .required-mark { margin-left: 4px; color: #ff4d4f; }
 .condition-row__groups { display: flex; min-width: 0; flex: 1; align-items: flex-start; flex-wrap: wrap; gap: 8px 28px; padding: 7px 0; }
-.condition-group { display: flex; min-width: 0; align-items: flex-start; gap: 10px; }
-.condition-group--ungrouped { gap: 0; }
-.condition-group__label { min-width: 68px; padding-top: 6px; white-space: nowrap; }
-.condition-group__fields { min-width: 0; }
-.condition-group__label .ant-typography { color: #526079; font-size: 13px; font-weight: 600; }
+.condition-group { min-width: 0; }
+.condition-group--ungrouped { display: flex; align-items: flex-start; }
+.condition-group--labeled { display: block; }
+.condition-group__form-item { margin: 0; }
+.condition-group__form-item > .ant-form-item-row { align-items: flex-start; flex-wrap: nowrap; }
+.condition-group__form-item > .ant-form-item-row > .ant-form-item-label { padding: 6px 10px 0 0; white-space: nowrap; }
+.condition-group__form-item > .ant-form-item-row > .ant-form-item-label > label { color: #526079; font-size: 13px; font-weight: 600; }
+.condition-group__form-item > .ant-form-item-row > .ant-form-item-control { min-width: 0; }
 .condition-field { margin: 0; }
 .condition-field .ant-form-item-explain { max-width: 220px; font-size: 12px; }
 
@@ -105,7 +108,10 @@ button, input { font: inherit; }
   .condition-group { width: 100%; }
   .condition-row__groups { display: block; }
   .condition-group { display: block; margin-bottom: 10px; }
-  .condition-group__label { width: 100%; padding-bottom: 6px; }
+  .condition-group__form-item > .ant-form-item-row { display: block; }
+  .condition-group__form-item > .ant-form-item-row > .ant-form-item-label,
+  .condition-group__form-item > .ant-form-item-row > .ant-form-item-control { width: 100%; max-width: 100%; flex: none !important; }
+  .condition-group__form-item > .ant-form-item-row > .ant-form-item-label { padding: 0 0 6px; }
   .condition-group .ant-space,
   .condition-group .ant-picker,
   .condition-group .ant-select,
