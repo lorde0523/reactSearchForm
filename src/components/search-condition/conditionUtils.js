@@ -1,6 +1,37 @@
 import dayjs from 'dayjs';
+import advancedFormat from 'dayjs/plugin/advancedFormat.js';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+import weekOfYear from 'dayjs/plugin/weekOfYear.js';
+import { PICKER_CONFIGS } from './pickerFormats';
+
+dayjs.extend(advancedFormat);
+dayjs.extend(customParseFormat);
+dayjs.extend(weekOfYear);
 
 export const DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
+
+function getPickerConfig(field) {
+  return PICKER_CONFIGS[field.type];
+}
+
+function getPickerValueFormat(field) {
+  return field.valueFormat || getPickerConfig(field)?.valueFormat || DEFAULT_DATE_FORMAT;
+}
+
+function parsePickerValue(value, field) {
+  if (!value) return undefined;
+
+  if (field.type === 'week' || field.type === 'weekRange') {
+    const text = String(value);
+    const year = Number(text.slice(0, 4));
+    const week = Number(text.slice(4).match(/\d{1,2}/)?.[0]);
+    if (!year || !week) return undefined;
+    return dayjs(`${year}-01-01`).week(week);
+  }
+
+  const parsed = dayjs(value, getPickerValueFormat(field), true);
+  return parsed.isValid() ? parsed : undefined;
+}
 
 export function isEmptyValue(value) {
   if (value === undefined || value === null) return true;
@@ -29,6 +60,19 @@ export function serializeFieldValue(value, field) {
     return dates.map((date) => date.format(field.format || DEFAULT_DATE_FORMAT));
   }
 
+  const pickerConfig = getPickerConfig(field);
+  if (pickerConfig) {
+    if (pickerConfig.range) {
+      if (!Array.isArray(value)) return undefined;
+      const dates = value.map((item) => dayjs(item));
+      if (dates.some((date) => !date.isValid())) return undefined;
+      return dates.map((date) => date.format(getPickerValueFormat(field)));
+    }
+
+    const date = dayjs(value);
+    return date.isValid() ? date.format(getPickerValueFormat(field)) : undefined;
+  }
+
   return value;
 }
 
@@ -37,6 +81,12 @@ export function deserializeFieldValue(value, field) {
   if (field.type === 'date') return value ? dayjs(value) : undefined;
   if (field.type === 'dateRange') {
     return Array.isArray(value) ? value.map((item) => dayjs(item)) : undefined;
+  }
+  const pickerConfig = getPickerConfig(field);
+  if (pickerConfig) {
+    return pickerConfig.range && Array.isArray(value)
+      ? value.map((item) => parsePickerValue(item, field))
+      : parsePickerValue(value, field);
   }
   return value;
 }
@@ -58,7 +108,9 @@ export function formatFieldValue(value, field) {
       .join(' / ');
   }
 
-  if (field.type === 'dateRange') return Array.isArray(value) ? value.join(' ~ ') : '';
+  if (field.type === 'dateRange' || getPickerConfig(field)?.range) {
+    return Array.isArray(value) ? value.join(' ~ ') : '';
+  }
   if (field.type === 'checkbox') return value ? field.checkedText || field.text || '선택' : '선택 안 함';
   if (Array.isArray(value)) return value.join(', ');
   return String(value);

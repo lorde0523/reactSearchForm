@@ -143,6 +143,49 @@ describe('conditionUtils', () => {
     });
   });
 
+  it('주차, 월, 연도 Picker 값을 지정 포맷으로 저장하고 복원한다', () => {
+    const pickerRows = [
+      {
+        key: 'pickers',
+        label: '날짜 조건',
+        fields: [
+          { name: 'week', label: '기준 주차', type: 'week' },
+          { name: 'weekRange', label: '주차 범위', type: 'weekRange' },
+          { name: 'month', label: '기준 월', type: 'month' },
+          { name: 'monthRange', label: '월 범위', type: 'monthRange' },
+          { name: 'year', label: '기준 연도', type: 'year' },
+          { name: 'yearRange', label: '연도 범위', type: 'yearRange' },
+        ],
+        groups: [],
+      },
+    ];
+    const weekStart = dayjs('2026-08-12');
+    const weekEnd = dayjs('2026-08-26');
+
+    const snapshot = createConditionSnapshot(pickerRows, {
+      week: weekStart,
+      weekRange: [weekStart, weekEnd],
+      month: dayjs('2026-08-01'),
+      monthRange: [dayjs('2026-08-01'), dayjs('2026-10-01')],
+      year: dayjs('2026-01-01'),
+      yearRange: [dayjs('2025-01-01'), dayjs('2027-01-01')],
+    });
+
+    expect(snapshot.values).toEqual({
+      week: weekStart.format('YYYYwo'),
+      weekRange: [weekStart.format('YYYYwo'), weekEnd.format('YYYYwo')],
+      month: '202608',
+      monthRange: ['202608', '202610'],
+      year: '2026',
+      yearRange: ['2025', '2027'],
+    });
+
+    const hydrated = hydrateSavedValues(pickerRows, snapshot.values);
+    expect(hydrated.week.format('YYYYwo')).toBe(snapshot.values.week);
+    expect(hydrated.month.format('YYYYMM')).toBe('202608');
+    expect(hydrated.yearRange.map((value) => value.format('YYYY'))).toEqual(['2025', '2027']);
+  });
+
   it('저장된 날짜 값을 RHF 입력 값으로 복원한다', () => {
     const hydrated = hydrateSavedValues(
       rows,

@@ -37,6 +37,28 @@ pnpm dev
 
 그룹에 포함되지 않은 필드는 저장 팝업에서 `SearchRow` 라벨 아래 하나로 합쳐집니다. 기본 입력은 `TextField`, `NumberField`, `SelectField`, `DateField`, `DateRangeField`, `CheckboxField`, `CheckboxGroupField`이며 페이지 전용 입력은 `CustomField`로 추가합니다.
 
+주차·월·연도 Picker는 다음 6개를 제공합니다.
+
+| 컴포넌트 | Picker | 저장 value 포맷 | 화면 포맷 |
+| --- | --- | --- | --- |
+| `WeekPickerField` | 주차 단일 | `YYYYwo` | `YYYY-w주차` |
+| `WeekRangePickerField` | 주차 범위 | `YYYYwo` 배열 | `YYYY-w주차` |
+| `MonthPickerField` | 월 단일 | `YYYYMM` | `YYYY-MM` |
+| `MonthRangePickerField` | 월 범위 | `YYYYMM` 배열 | `YYYY-MM` |
+| `YearPickerField` | 연도 단일 | `YYYY` | `YYYY` |
+| `YearRangePickerField` | 연도 범위 | `YYYY` 배열 | `YYYY` |
+
+```jsx
+<SearchGroup groupKey="pickerExamples" label="날짜 기준">
+  <WeekPickerField name="week" label="기준 주차" />
+  <WeekRangePickerField name="weekRange" label="주차 범위" />
+  <MonthPickerField name="month" label="기준 월" />
+  <MonthRangePickerField name="monthRange" label="월 범위" />
+  <YearPickerField name="year" label="기준 연도" />
+  <YearRangePickerField name="yearRange" label="연도 범위" />
+</SearchGroup>
+```
+
 특수 값은 `serialize`, `deserialize`, `formatDisplay`를 전달하면 저장, 복원, 팝업 표시에서도 같은 선언을 사용합니다. 단일 `CheckboxField`는 체크된 경우에만 표시되고, `CheckboxGroupField`는 선택된 option label만 `/`로 연결합니다.
 
 각 입력은 `fields/` 아래 타입별 컴포넌트로 분리되어 있습니다. `ControlledField`가 react-hook-form의 `Controller`와 Ant Design `Form.Item`을 공통 처리합니다.

@@ -7,9 +7,15 @@ import {
   CheckboxGroupField,
   CustomField,
   DateRangeField,
+  MonthPickerField,
+  MonthRangePickerField,
   NumberField,
   SelectField,
   TextField,
+  WeekPickerField,
+  WeekRangePickerField,
+  YearPickerField,
+  YearRangePickerField,
 } from '../components/search-condition/fields';
 
 const statusOptions = [
@@ -146,6 +152,23 @@ export default function SearchConditionExample({
             deserialize={(value) => String(value).toLowerCase()}
             formatDisplay={(value) => `M-${value}`}
           />
+        </SearchGroup>
+      </SearchRow>
+
+      <SearchRow rowKey="pickerExamples" label="날짜 조건" detail>
+        <SearchGroup groupKey="weekPickers" label="주차">
+          <WeekPickerField name="week" label="기준 주차" />
+          <WeekRangePickerField name="weekRange" label="주차 범위" />
+        </SearchGroup>
+
+        <SearchGroup groupKey="monthPickers" label="월">
+          <MonthPickerField name="month" label="기준 월" />
+          <MonthRangePickerField name="monthRange" label="월 범위" />
+        </SearchGroup>
+
+        <SearchGroup groupKey="yearPickers" label="연도">
+          <YearPickerField name="year" label="기준 연도" />
+          <YearRangePickerField name="yearRange" label="연도 범위" />
         </SearchGroup>
       </SearchRow>
     </SearchConditionForm>
