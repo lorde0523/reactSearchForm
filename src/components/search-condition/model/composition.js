@@ -20,6 +20,20 @@ function createFieldSchema(props, type) {
   );
 }
 
+export function createGroupToggleField(toggle, groupLabel) {
+  if (!toggle) return undefined;
+  if (!toggle.name) throw new Error('SearchGroup toggle에는 name이 필요합니다.');
+
+  return {
+    defaultValue: false,
+    hideFalsyInPreview: true,
+    includeFalsy: true,
+    label: `${groupLabel} 사용`,
+    ...toggle,
+    type: 'checkbox',
+  };
+}
+
 function fieldFromElement(element) {
   const { children, field: suppliedField, ...elementProps } = element.props;
   const props = { ...elementProps, ...(suppliedField || {}) };
@@ -49,11 +63,19 @@ export function createRowsFromChildren(children) {
       }
 
       if (kind === 'group' && currentRow) {
-        const { children: groupChildren, ...groupProps } = node.props;
+        const {
+          children: groupChildren,
+          className,
+          groupClassName,
+          toggle,
+          ...groupProps
+        } = node.props;
+        const toggleField = createGroupToggleField(toggle, groupProps.label);
         const group = {
           ...groupProps,
           key: groupProps.groupKey || groupProps.label,
-          fields: [],
+          fields: toggleField ? [createFieldSchema(toggleField, 'checkbox')] : [],
+          toggleName: toggleField?.name,
         };
         currentRow.groups.push(group);
         visit(groupChildren, currentRow, group);

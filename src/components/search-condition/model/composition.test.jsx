@@ -15,7 +15,12 @@ describe('createRowsFromChildren', () => {
           rules={{ required: '필수값입니다.' }}
           style={{ width: 200 }}
         />
-        <SearchGroup groupKey="status" label="진행 상태">
+        <SearchGroup
+          groupKey="status"
+          label="진행 상태"
+          className="status-form-item"
+          toggle={{ name: 'useStatus', defaultValue: true, text: '사용' }}
+        >
           <SelectField
             name="status"
             label="진행 상태"
@@ -39,7 +44,16 @@ describe('createRowsFromChildren', () => {
       type: 'text',
     });
     expect(rows[0].groups[0].key).toBe('status');
+    expect(rows[0].groups[0].toggleName).toBe('useStatus');
+    expect(rows[0].groups[0]).not.toHaveProperty('className');
     expect(rows[0].groups[0].fields).toEqual([
+      expect.objectContaining({
+        defaultValue: true,
+        hideFalsyInPreview: true,
+        includeFalsy: true,
+        name: 'useStatus',
+        type: 'checkbox',
+      }),
       expect.objectContaining({ name: 'status', type: 'select' }),
       expect.objectContaining({ name: 'urgent', type: 'checkbox' }),
     ]);

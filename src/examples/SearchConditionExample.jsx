@@ -74,7 +74,17 @@ export default function SearchConditionExample({
           placeholder="고객명 또는 번호"
         />
 
-        <SearchGroup groupKey="period" label="조회 기간">
+        <SearchGroup
+          groupKey="period"
+          label="조회 기간"
+          className="period-group-form-item"
+          toggle={{
+            name: 'usePeriod',
+            label: '조회 기간 사용',
+            checkedText: '사용',
+            defaultValue: true,
+          }}
+        >
           <SelectField
             name="dateType"
             label="날짜 기준"

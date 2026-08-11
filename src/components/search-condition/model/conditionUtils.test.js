@@ -253,4 +253,74 @@ describe('conditionUtils', () => {
     expect(hydrated.urgent).toBe(false);
     expect(hydrated.period[0].format('YYYY-MM-DD')).toBe('2026-07-01');
   });
+
+  it('그룹 toggle이 꺼지면 내부 필드를 제외하고 false 상태만 저장한다', () => {
+    const toggleRows = [
+      {
+        key: 'basic',
+        label: '기본 조건',
+        fields: [],
+        groups: [
+          {
+            key: 'period',
+            label: '조회 기간',
+            toggleName: 'usePeriod',
+            fields: [
+              {
+                name: 'usePeriod',
+                label: '조회 기간 사용',
+                type: 'checkbox',
+                includeFalsy: true,
+                hideFalsyInPreview: true,
+                defaultValue: true,
+                checkedText: '사용',
+              },
+              { name: 'dateType', label: '날짜 기준', type: 'text' },
+            ],
+          },
+        ],
+      },
+    ];
+
+    expect(createConditionSnapshot(toggleRows, {
+      usePeriod: false,
+      dateType: '등록일',
+    })).toEqual({
+      values: { usePeriod: false },
+      preview: [],
+    });
+
+    expect(createConditionSnapshot(toggleRows, {
+      usePeriod: true,
+      dateType: '등록일',
+    })).toEqual({
+      values: { usePeriod: true, dateType: '등록일' },
+      preview: [
+        {
+          key: 'basic-period',
+          label: '조회 기간',
+          fields: [
+            {
+              name: 'usePeriod',
+              label: '조회 기간 사용',
+              type: 'checkbox',
+              value: '사용',
+            },
+            {
+              name: 'dateType',
+              label: '날짜 기준',
+              type: 'text',
+              value: '등록일',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(hydrateSavedValues(
+      toggleRows,
+      { usePeriod: false },
+      { usePeriod: true },
+    ).usePeriod).toBe(false);
+  });
 });

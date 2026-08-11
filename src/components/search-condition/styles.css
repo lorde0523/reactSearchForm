@@ -35,6 +35,10 @@
 .condition-group { min-width: 0; }
 .condition-group--ungrouped { display: flex; align-items: flex-start; }
 .condition-group--labeled { display: block; }
+.condition-group__row { min-width: 0; }
+.condition-group__toggle { padding-top: 6px; }
+.condition-group__toggle .condition-field { margin: 0; }
+.condition-group__body { min-width: 0; }
 .condition-group__form-item { margin: 0; }
 .condition-group__form-item > .ant-form-item-row { align-items: flex-start; flex-wrap: nowrap; }
 .condition-group__form-item > .ant-form-item-row > .ant-form-item-label { padding: 6px 10px 0 0; white-space: nowrap; }

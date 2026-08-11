@@ -62,6 +62,31 @@ import {
 
 그룹에 포함되지 않은 필드는 저장 팝업에서 `SearchRow` 라벨 아래 하나로 합쳐집니다. 기본 입력은 `TextField`, `NumberField`, `SelectField`, `DateField`, `DateRangeField`, `CheckboxField`, `CheckboxGroupField`이며 페이지 전용 입력은 `CustomField`로 추가합니다.
 
+`SearchGroup`의 `label`과 `className`은 내부 `Form.Item`에 적용됩니다. 그룹 바깥쪽 `Col`에 클래스가 필요하면 `groupClassName`을 사용합니다.
+
+그룹 앞의 활성화 체크박스는 `toggle`로 설정합니다. 체크를 해제하면 자식 필드가 자동으로 비활성화되고 조회·저장 값에서도 제외됩니다. 각 자식 필드에 같은 `dependencies`와 `disabled`를 반복할 필요가 없습니다.
+
+```jsx
+<SearchGroup
+  groupKey="period"
+  label="조회 기간"
+  className="period-form-item"
+  groupClassName="period-group"
+  toggle={{
+    name: 'usePeriod',
+    label: '조회 기간 사용',
+    checkedText: '사용',
+    defaultValue: true,
+    onChange: (checked, { form }) => {
+      console.log(checked, form.getValues());
+    },
+  }}
+>
+  <SelectField name="dateType" label="날짜 기준" options={dateTypeOptions} />
+  <DateRangeField name="period" label="조회 기간" />
+</SearchGroup>
+```
+
 주차·월·연도 Picker는 다음 6개를 제공합니다.
 
 | 컴포넌트 | Picker | 저장 value 포맷 | 화면 포맷 |

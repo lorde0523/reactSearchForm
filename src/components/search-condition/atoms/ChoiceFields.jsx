@@ -74,6 +74,7 @@ export function CheckboxField({ field: suppliedField, ...props }) {
       field={field}
       renderInput={({ controllerField, disabled }) => (
         <Checkbox
+          aria-label={getFieldLabel(field)}
           checked={Boolean(controllerField.value)}
           className={field.className}
           disabled={disabled}

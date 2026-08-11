@@ -160,6 +160,8 @@ export function createConditionSnapshot(rows, formValues) {
         if (isEmptyValue(serializedValue)) return;
 
         values[field.name] = serializedValue;
+        if (field.hideInPreview || (field.hideFalsyInPreview && serializedValue === false)) return;
+
         previewFields.push({
           name: field.name,
           label: field.label || field.placeholder || field.name,
@@ -182,7 +184,10 @@ export function createConditionSnapshot(rows, formValues) {
     }
 
     (row.groups || []).forEach((group) => {
-      const previewFields = collectFields(group.fields);
+      const fields = group.toggleName && formValues[group.toggleName] !== true
+        ? group.fields.filter((field) => field.name === group.toggleName)
+        : group.fields;
+      const previewFields = collectFields(fields);
 
       if (previewFields.length) {
         preview.push({

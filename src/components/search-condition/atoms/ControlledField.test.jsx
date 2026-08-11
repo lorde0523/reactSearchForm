@@ -24,6 +24,15 @@ describe('resolveFieldDisabled', () => {
     }));
   });
 
+  it('그룹이 비활성화되면 필드 설정과 관계없이 비활성화한다', () => {
+    expect(resolveFieldDisabled(
+      { name: 'keyword', disabled: false },
+      {},
+      [],
+      true,
+    )).toBe(true);
+  });
+
   it('기본 width와 전달받은 style을 병합하고 style을 우선한다', () => {
     expect(getFieldWidth({
       width: 160,

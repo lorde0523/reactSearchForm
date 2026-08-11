@@ -1,7 +1,8 @@
 import { Form } from 'antd';
-import { useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { deserializeFieldValue } from '../model/conditionUtils';
+import { GroupDisabledContext } from '../model/SearchConditionContext';
 
 const EMPTY_DEPENDENCIES = [];
 
@@ -12,7 +13,8 @@ function normalizeChangeValue(value) {
   return value;
 }
 
-export function resolveFieldDisabled(field, form, dependencyValues) {
+export function resolveFieldDisabled(field, form, dependencyValues, groupDisabled = false) {
+  if (groupDisabled) return true;
   if (typeof field.disabled !== 'function') return Boolean(field.disabled);
   return Boolean(field.disabled({
     dependencyValues,
@@ -25,6 +27,7 @@ export function resolveFieldDisabled(field, form, dependencyValues) {
 
 export default function ControlledField({ field, renderInput }) {
   const methods = useFormContext();
+  const groupDisabled = useContext(GroupDisabledContext);
   const dependencies = field.dependencies || EMPTY_DEPENDENCIES;
   const dependencyValues = useWatch({
     control: methods.control,
@@ -32,7 +35,7 @@ export default function ControlledField({ field, renderInput }) {
     name: dependencies,
   });
   const previousInitialValue = useRef({ name: field.name, value: field.initialValue });
-  const disabled = resolveFieldDisabled(field, methods, dependencyValues);
+  const disabled = resolveFieldDisabled(field, methods, dependencyValues, groupDisabled);
 
   useEffect(() => {
     const previous = previousInitialValue.current;
