@@ -8,12 +8,10 @@ export default function DateRangeField({ field: suppliedField, ...props }) {
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField, disabled }) => (
+      renderInput={({ controllerField }) => (
         <RangePicker
           {...controllerField}
-          allowEmpty={field.allowEmpty ?? (disabled ? [true, true] : undefined)}
           aria-label={getFieldLabel(field)}
-          disabled={disabled}
           format={field.format || 'YYYY-MM-DD'}
           style={getFieldWidth(field, 260)}
         />

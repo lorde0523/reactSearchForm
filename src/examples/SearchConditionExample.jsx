@@ -68,13 +68,7 @@ export default function SearchConditionExample({
               form.setValue('period', undefined, { shouldDirty: true });
             }}
           />
-          <DateRangeField
-            name="period"
-            label="조회 기간"
-            width={250}
-            dependencies={['dateType']}
-            disabled={({ values }) => !values.dateType}
-          />
+          <DateRangeField name="period" label="조회 기간" width={250} />
         </SearchGroup>
 
         <SearchGroup groupKey="status" label="진행 상태">
