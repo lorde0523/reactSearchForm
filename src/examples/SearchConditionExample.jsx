@@ -3,13 +3,18 @@ import SearchConditionForm from '../components/search-condition/SearchConditionF
 import SearchGroup from '../components/search-condition/SearchGroup';
 import SearchRow from '../components/search-condition/SearchRow';
 import {
+  AutoCompleteField,
   CheckboxField,
   CheckboxGroupField,
   CustomField,
   DateRangeField,
   NumberField,
   PeriodPickerField,
+  RadioButtonGroupField,
+  RadioGroupField,
   SelectField,
+  SwitchField,
+  TextAreaField,
   TextField,
 } from '../components/search-condition/fields';
 
@@ -33,6 +38,18 @@ const channelOptions = [
 const notificationOptions = [
   { label: 'SMS', value: 'sms' },
   { label: '이메일', value: 'email' },
+];
+
+const priorityOptions = [
+  { label: '전체', value: 'all' },
+  { label: '일반', value: 'normal' },
+  { label: '긴급', value: 'urgent' },
+];
+
+const regionOptions = [
+  { label: '서울', value: '서울' },
+  { label: '경기', value: '경기' },
+  { label: '인천', value: '인천' },
 ];
 
 export default function SearchConditionExample({
@@ -164,6 +181,45 @@ export default function SearchConditionExample({
         <SearchGroup groupKey="yearPickers" label="연도">
           <PeriodPickerField name="year" label="기준 연도" picker="year" />
           <PeriodPickerField name="yearRange" label="연도 범위" picker="year" range />
+        </SearchGroup>
+      </SearchRow>
+
+      <SearchRow rowKey="additionalFields" label="추가 필드" detail>
+        <SearchGroup groupKey="radioExamples" label="라디오">
+          <RadioGroupField
+            name="priority"
+            label="우선순위"
+            defaultValue="all"
+            options={priorityOptions}
+          />
+          <RadioButtonGroupField
+            name="priorityButton"
+            label="우선순위 버튼"
+            defaultValue="all"
+            options={priorityOptions}
+          />
+        </SearchGroup>
+
+        <SearchGroup groupKey="inputExamples" label="기타 입력">
+          <SwitchField
+            name="includeClosed"
+            label="종료 건 포함"
+            checkedText="포함"
+            uncheckedText="제외"
+            defaultValue={false}
+          />
+          <AutoCompleteField
+            name="region"
+            label="지역"
+            options={regionOptions}
+            placeholder="지역 입력"
+          />
+          <TextAreaField
+            name="memoKeyword"
+            label="메모 검색어"
+            width={220}
+            placeholder="메모 검색어 입력"
+          />
         </SearchGroup>
       </SearchRow>
     </SearchConditionForm>

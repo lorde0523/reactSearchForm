@@ -63,6 +63,48 @@ pnpm dev
 
 통합 컴포넌트도 `initialValue`, `onChange`, `valueFormat`, `displayFormat`, `width`, `rules`를 동일하게 지원합니다. `valueFormat`과 `displayFormat`을 생략하면 위 표의 기본 포맷을 사용합니다.
 
+추가 기본 필드는 다음과 같습니다.
+
+| 컴포넌트 | 용도 |
+| --- | --- |
+| `RadioGroupField` | 일반 라디오 옵션 그룹 |
+| `RadioButtonGroupField` | 버튼 형태 라디오 그룹 |
+| `SwitchField` | boolean on/off 입력 |
+| `TextAreaField` | 여러 줄 텍스트 입력 |
+| `AutoCompleteField` | 직접 입력과 추천 옵션 선택 |
+
+```jsx
+<RadioGroupField
+  name="priority"
+  label="우선순위"
+  options={priorityOptions}
+/>
+
+<RadioButtonGroupField
+  name="priorityButton"
+  label="우선순위 버튼"
+  options={priorityOptions}
+/>
+
+<SwitchField
+  name="includeClosed"
+  label="종료 건 포함"
+  checkedText="포함"
+  uncheckedText="제외"
+/>
+
+<AutoCompleteField
+  name="region"
+  label="지역"
+  options={regionOptions}
+/>
+
+<TextAreaField
+  name="memoKeyword"
+  label="메모 검색어"
+/>
+```
+
 ```jsx
 <SearchGroup groupKey="pickerExamples" label="날짜 기준">
   <WeekPickerField name="week" label="기준 주차" />

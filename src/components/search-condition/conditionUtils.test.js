@@ -186,6 +186,62 @@ describe('conditionUtils', () => {
     expect(hydrated.yearRange.map((value) => value.format('YYYY'))).toEqual(['2025', '2027']);
   });
 
+  it('라디오, Switch, 자동완성, TextArea 값을 스냅샷으로 만든다', () => {
+    const additionalRows = [
+      {
+        key: 'additional',
+        label: '추가 필드',
+        fields: [
+          {
+            name: 'priority',
+            label: '우선순위',
+            type: 'radioGroup',
+            options: [{ label: '긴급', value: 'urgent' }],
+          },
+          {
+            name: 'priorityButton',
+            label: '우선순위 버튼',
+            type: 'radioButtonGroup',
+            options: [{ label: '일반', value: 'normal' }],
+          },
+          { name: 'includeClosed', label: '종료 건 포함', type: 'switch', checkedText: '포함' },
+          {
+            name: 'region',
+            label: '지역',
+            type: 'autoComplete',
+            options: [{ label: '서울특별시', value: '서울' }],
+          },
+          { name: 'memoKeyword', label: '메모 검색어', type: 'textArea' },
+        ],
+        groups: [],
+      },
+    ];
+
+    const snapshot = createConditionSnapshot(additionalRows, {
+      priority: 'urgent',
+      priorityButton: 'normal',
+      includeClosed: true,
+      region: '서울',
+      memoKeyword: 'VIP 고객',
+    });
+
+    expect(snapshot.values).toEqual({
+      priority: 'urgent',
+      priorityButton: 'normal',
+      includeClosed: true,
+      region: '서울',
+      memoKeyword: 'VIP 고객',
+    });
+    expect(snapshot.preview[0].fields.map(({ value }) => value)).toEqual([
+      '긴급',
+      '일반',
+      '포함',
+      '서울특별시',
+      'VIP 고객',
+    ]);
+    expect(createConditionSnapshot(additionalRows, { includeClosed: false }).values).toEqual({});
+  });
+
   it('저장된 날짜 값을 RHF 입력 값으로 복원한다', () => {
     const hydrated = hydrateSavedValues(
       rows,

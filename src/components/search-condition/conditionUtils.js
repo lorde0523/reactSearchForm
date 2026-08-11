@@ -41,7 +41,9 @@ export function isEmptyValue(value) {
 }
 
 function isActiveFieldValue(value, field) {
-  if (field.type === 'checkbox' && value === false && !field.includeFalsy) return false;
+  if ((field.type === 'checkbox' || field.type === 'switch') && value === false && !field.includeFalsy) {
+    return false;
+  }
   return !isEmptyValue(value);
 }
 
@@ -94,7 +96,7 @@ export function deserializeFieldValue(value, field) {
 export function formatFieldValue(value, field) {
   if (field.formatDisplay) return field.formatDisplay(value, field);
 
-  if (field.type === 'select') {
+  if (['select', 'radioGroup', 'radioButtonGroup', 'autoComplete'].includes(field.type)) {
     const selectedValues = Array.isArray(value) ? value : [value];
     return selectedValues
       .map((selected) => field.options?.find((option) => option.value === selected)?.label ?? selected)
@@ -112,6 +114,9 @@ export function formatFieldValue(value, field) {
     return Array.isArray(value) ? value.join(' ~ ') : '';
   }
   if (field.type === 'checkbox') return value ? field.checkedText || field.text || '선택' : '선택 안 함';
+  if (field.type === 'switch') return value
+    ? field.checkedText || '사용'
+    : field.uncheckedText || '사용 안 함';
   if (Array.isArray(value)) return value.join(', ');
   return String(value);
 }
