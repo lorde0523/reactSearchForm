@@ -6,12 +6,13 @@ export default function TextField({ field: suppliedField, ...props }) {
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField }) => (
+      renderInput={({ controllerField, disabled }) => (
         <Input
           {...controllerField}
           value={controllerField.value ?? ''}
           allowClear
           aria-label={getFieldLabel(field)}
+          disabled={disabled}
           placeholder={field.placeholder || '입력'}
           style={getFieldWidth(field)}
         />

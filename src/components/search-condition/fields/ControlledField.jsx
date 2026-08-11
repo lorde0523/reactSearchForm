@@ -1,7 +1,9 @@
 import { Form } from 'antd';
 import { useEffect, useRef } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { deserializeFieldValue } from '../conditionUtils';
+
+const EMPTY_DEPENDENCIES = [];
 
 export function normalizeChangeValue(value) {
   if (value && typeof value === 'object' && 'target' in value) {
@@ -10,9 +12,27 @@ export function normalizeChangeValue(value) {
   return value;
 }
 
+export function resolveFieldDisabled(field, form, dependencyValues) {
+  if (typeof field.disabled !== 'function') return Boolean(field.disabled);
+  return Boolean(field.disabled({
+    dependencyValues,
+    field,
+    form,
+    name: field.name,
+    values: form.getValues(),
+  }));
+}
+
 export default function ControlledField({ field, renderInput }) {
   const methods = useFormContext();
+  const dependencies = field.dependencies || EMPTY_DEPENDENCIES;
+  const dependencyValues = useWatch({
+    control: methods.control,
+    disabled: dependencies.length === 0,
+    name: dependencies,
+  });
   const previousInitialValue = useRef({ name: field.name, value: field.initialValue });
+  const disabled = resolveFieldDisabled(field, methods, dependencyValues);
 
   useEffect(() => {
     const previous = previousInitialValue.current;
@@ -53,7 +73,12 @@ export default function ControlledField({ field, renderInput }) {
             help={fieldState.error?.message}
             validateStatus={fieldState.error ? 'error' : undefined}
           >
-            {renderInput({ controllerField: fieldWithChangeHandler, fieldState, form: methods })}
+            {renderInput({
+              controllerField: fieldWithChangeHandler,
+              disabled,
+              fieldState,
+              form: methods,
+            })}
           </Form.Item>
         );
       }}

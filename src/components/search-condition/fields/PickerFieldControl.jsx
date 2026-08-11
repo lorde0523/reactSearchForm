@@ -9,10 +9,14 @@ export default function PickerFieldControl({ field }) {
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField }) => (
+      renderInput={({ controllerField, disabled }) => (
         <Picker
           {...controllerField}
+          {...(config.range ? {
+            allowEmpty: field.allowEmpty ?? (disabled ? [true, true] : undefined),
+          } : {})}
           aria-label={getFieldLabel(field)}
+          disabled={disabled}
           format={field.displayFormat || config.displayFormat}
           picker={config.picker}
           placeholder={field.placeholder}

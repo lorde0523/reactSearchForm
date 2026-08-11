@@ -5,8 +5,14 @@ export default function CustomField({ field: suppliedField, ...props }) {
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField, fieldState, form }) => (
-        field.render({ field, controllerField, fieldState, form })
+      renderInput={({ controllerField, disabled, fieldState, form }) => (
+        field.render({
+          controllerField,
+          disabled,
+          field: { ...field, disabled },
+          fieldState,
+          form,
+        })
       )}
     />
   );

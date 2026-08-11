@@ -6,9 +6,10 @@ export default function CheckboxField({ field: suppliedField, ...props }) {
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField }) => (
+      renderInput={({ controllerField, disabled }) => (
         <Checkbox
           checked={Boolean(controllerField.value)}
+          disabled={disabled}
           name={controllerField.name}
           ref={controllerField.ref}
           onBlur={controllerField.onBlur}

@@ -6,11 +6,12 @@ export default function SelectField({ field: suppliedField, ...props }) {
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField }) => (
+      renderInput={({ controllerField, disabled }) => (
         <Select
           {...controllerField}
           allowClear
           aria-label={getFieldLabel(field)}
+          disabled={disabled}
           mode={field.mode}
           options={field.options}
           placeholder={field.placeholder || '선택'}
