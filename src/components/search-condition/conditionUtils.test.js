@@ -120,6 +120,29 @@ describe('conditionUtils', () => {
     expect(defaults.period[1].format('YYYY-MM-DD')).toBe('2026-08-31');
   });
 
+  it('필드 initialValue를 적용하고 폼 전체 초기값을 우선한다', () => {
+    const rowsWithInitialValue = [
+      {
+        key: 'basic',
+        label: '기본 조건',
+        fields: [
+          { name: 'keyword', type: 'text', initialValue: '필드 초기값' },
+          { name: 'urgent', type: 'checkbox', defaultValue: false },
+        ],
+        groups: [],
+      },
+    ];
+
+    expect(buildDefaultValues(rowsWithInitialValue)).toEqual({
+      keyword: '필드 초기값',
+      urgent: false,
+    });
+    expect(buildDefaultValues(rowsWithInitialValue, { keyword: '폼 전체 초기값' })).toEqual({
+      keyword: '폼 전체 초기값',
+      urgent: false,
+    });
+  });
+
   it('저장된 날짜 값을 RHF 입력 값으로 복원한다', () => {
     const hydrated = hydrateSavedValues(
       rows,

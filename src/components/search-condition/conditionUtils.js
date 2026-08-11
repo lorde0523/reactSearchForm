@@ -71,11 +71,18 @@ export function flattenFields(rows) {
   ]);
 }
 
+export function getFieldInitialValue(field) {
+  return field.initialValue !== undefined ? field.initialValue : field.defaultValue;
+}
+
 export function buildDefaultValues(rows, suppliedDefaults = {}) {
   const schemaDefaults = Object.fromEntries(
     flattenFields(rows)
-      .filter((field) => field.defaultValue !== undefined)
-      .map((field) => [field.name, field.defaultValue]),
+      .filter((field) => getFieldInitialValue(field) !== undefined)
+      .map((field) => [
+        field.name,
+        deserializeFieldValue(getFieldInitialValue(field), field),
+      ]),
   );
 
   return hydrateSavedValues(rows, suppliedDefaults, schemaDefaults);

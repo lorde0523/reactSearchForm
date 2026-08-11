@@ -63,6 +63,19 @@ pnpm dev
 
 `TextField`는 문자열, `NumberField`는 숫자 또는 `null`, `SelectField`는 선택값, `DateField`는 dayjs 객체, `DateRangeField`는 dayjs 배열, `CheckboxField`는 boolean, `CheckboxGroupField`는 선택값 배열을 첫 번째 인자로 전달합니다.
 
+자기 필드의 변경값은 `ControlledField`가 RHF에 먼저 저장하므로 사용자 `onChange` 안에서 다시 `setValue(name, value)`를 호출할 필요가 없습니다. `setValue`는 연관된 다른 필드를 변경할 때만 사용하면 됩니다.
+
+```jsx
+<TextField
+  name="keyword"
+  label="검색어"
+  onChange={(value, { name, values }) => {
+    // 이 시점에 keyword는 이미 RHF에 저장되어 있습니다.
+    trackFieldChange({ name, value, allValues: values });
+  }}
+/>
+```
+
 ## 서버에서 받은 초기값 적용
 
 서버 응답을 state에 넣고 `defaultValues`로 전달하면 응답 객체가 변경되는 시점에 RHF의 `reset()`으로 전체 필드에 적용됩니다.
@@ -107,6 +120,36 @@ function OrderSearchPage() {
   notificationChannels: ['sms', 'email']
 }
 ```
+
+### 필드별 초기값과 개별 변경
+
+전체 `defaultValues`와 별도로 각 필드에 `initialValue`를 줄 수 있습니다. `initialValue`가 변경되면 해당 필드만 RHF에 다시 적용됩니다.
+
+```jsx
+function CustomerFields({ serverCustomer }) {
+  return (
+    <SearchRow rowKey="customer" label="고객 조건">
+      <TextField
+        name="customerName"
+        label="고객명"
+        initialValue={serverCustomer?.name}
+        onChange={(value) => {
+          console.log('RHF 저장 후 실행:', value);
+        }}
+      />
+
+      <SelectField
+        name="status"
+        label="진행 상태"
+        initialValue={serverCustomer?.status}
+        options={statusOptions}
+      />
+    </SearchRow>
+  );
+}
+```
+
+초기값 우선순위는 `SearchConditionForm.defaultValues` → 필드 `initialValue` → 필드 `defaultValue`입니다. 배열이나 객체 형태의 `initialValue`는 불필요한 재적용을 막기 위해 state 또는 `useMemo`로 동일한 참조를 유지하는 것이 좋습니다.
 
 저장조건은 다음 형식으로 전달합니다.
 

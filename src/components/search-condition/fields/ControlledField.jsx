@@ -1,5 +1,7 @@
 import { Form } from 'antd';
+import { useEffect, useRef } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
+import { deserializeFieldValue } from '../conditionUtils';
 
 export function normalizeChangeValue(value) {
   if (value && typeof value === 'object' && 'target' in value) {
@@ -10,6 +12,19 @@ export function normalizeChangeValue(value) {
 
 export default function ControlledField({ field, renderInput }) {
   const methods = useFormContext();
+  const previousInitialValue = useRef({ name: field.name, value: field.initialValue });
+
+  useEffect(() => {
+    const previous = previousInitialValue.current;
+    if (previous.name === field.name && Object.is(previous.value, field.initialValue)) return;
+
+    previousInitialValue.current = { name: field.name, value: field.initialValue };
+    methods.setValue(field.name, deserializeFieldValue(field.initialValue, field), {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: false,
+    });
+  }, [field.deserialize, field.initialValue, field.name, field.type, methods]);
 
   return (
     <Controller
