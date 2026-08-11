@@ -69,8 +69,9 @@ export default function ControlledField({ field, renderInput }) {
 
         return (
           <Form.Item
-            className="condition-field"
+            className={['condition-field', field.formItemClassName].filter(Boolean).join(' ')}
             help={fieldState.error?.message}
+            style={field.formItemStyle}
             validateStatus={fieldState.error ? 'error' : undefined}
           >
             {renderInput({
@@ -91,7 +92,7 @@ export function getFieldLabel(field) {
 }
 
 export function getFieldWidth(field, fallback = 160) {
-  return { width: field.width || fallback };
+  return { width: field.width || fallback, ...field.style };
 }
 
 export function resolveField(suppliedField, props, type) {

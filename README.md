@@ -220,6 +220,24 @@ pnpm dev
 />
 ```
 
+## 필드 스타일 전달
+
+모든 기본 필드는 입력 컴포넌트에 적용되는 `style`, `className`과 `Form.Item`에 적용되는 `formItemStyle`, `formItemClassName`을 지원합니다.
+
+```jsx
+<TextField
+  name="keyword"
+  label="검색어"
+  width={160}
+  style={{ width: 240, backgroundColor: '#fafafa' }}
+  className="keyword-input"
+  formItemStyle={{ marginRight: 12 }}
+  formItemClassName="keyword-form-item"
+/>
+```
+
+`width`와 `style.width`를 함께 전달하면 `style.width`가 우선합니다. `CustomField`는 render의 `field.style`, `field.className`, `field.formItemStyle`을 사용해 커스텀 입력에 직접 연결할 수 있습니다.
+
 ## 서버에서 받은 초기값 적용
 
 서버 응답을 state에 넣고 `defaultValues`로 전달하면 응답 객체가 변경되는 시점에 RHF의 `reset()`으로 전체 필드에 적용됩니다.

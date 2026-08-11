@@ -12,6 +12,7 @@ export default function TextField({ field: suppliedField, ...props }) {
           value={controllerField.value ?? ''}
           allowClear
           aria-label={getFieldLabel(field)}
+          className={field.className}
           disabled={disabled}
           placeholder={field.placeholder || '입력'}
           style={getFieldWidth(field)}

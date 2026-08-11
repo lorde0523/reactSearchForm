@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { resolveFieldDisabled } from './ControlledField';
+import { getFieldWidth, resolveFieldDisabled } from './ControlledField';
 
 describe('resolveFieldDisabled', () => {
   it('boolean disabled를 그대로 적용한다', () => {
@@ -22,5 +22,15 @@ describe('resolveFieldDisabled', () => {
       name: 'period',
       values: { dateType: undefined },
     }));
+  });
+
+  it('기본 width와 전달받은 style을 병합하고 style을 우선한다', () => {
+    expect(getFieldWidth({
+      width: 160,
+      style: { color: 'red', width: 240 },
+    })).toEqual({
+      color: 'red',
+      width: 240,
+    });
   });
 });

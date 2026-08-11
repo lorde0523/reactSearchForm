@@ -6,13 +6,15 @@ export default function RadioButtonGroupField({ field: suppliedField, ...props }
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField }) => (
+      renderInput={({ controllerField, disabled }) => (
         <Radio.Group
           {...controllerField}
           buttonStyle={field.buttonStyle || 'solid'}
-          disabled={field.disabled}
+          className={field.className}
+          disabled={disabled}
           optionType="button"
           options={field.options}
+          style={field.style}
         />
       )}
     />

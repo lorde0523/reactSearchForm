@@ -10,6 +10,7 @@ export default function DateField({ field: suppliedField, ...props }) {
         <DatePicker
           {...controllerField}
           aria-label={getFieldLabel(field)}
+          className={field.className}
           disabled={disabled}
           format={field.format || 'YYYY-MM-DD'}
           placeholder={field.placeholder || '날짜 선택'}

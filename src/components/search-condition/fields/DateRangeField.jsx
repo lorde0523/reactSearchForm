@@ -13,6 +13,7 @@ export default function DateRangeField({ field: suppliedField, ...props }) {
           {...controllerField}
           allowEmpty={field.allowEmpty ?? (disabled ? [true, true] : undefined)}
           aria-label={getFieldLabel(field)}
+          className={field.className}
           disabled={disabled}
           format={field.format || 'YYYY-MM-DD'}
           style={getFieldWidth(field, 260)}

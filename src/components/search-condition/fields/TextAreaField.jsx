@@ -8,14 +8,15 @@ export default function TextAreaField({ field: suppliedField, ...props }) {
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField }) => (
+      renderInput={({ controllerField, disabled }) => (
         <TextArea
           {...controllerField}
           value={controllerField.value ?? ''}
           allowClear
           aria-label={getFieldLabel(field)}
           autoSize={field.autoSize || { minRows: 1, maxRows: 3 }}
-          disabled={field.disabled}
+          className={field.className}
+          disabled={disabled}
           maxLength={field.maxLength}
           placeholder={field.placeholder || '입력'}
           showCount={field.showCount}

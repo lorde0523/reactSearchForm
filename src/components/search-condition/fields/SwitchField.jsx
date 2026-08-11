@@ -6,11 +6,13 @@ export default function SwitchField({ field: suppliedField, ...props }) {
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField }) => (
+      renderInput={({ controllerField, disabled }) => (
         <Switch
           checked={Boolean(controllerField.value)}
           checkedChildren={field.checkedText}
-          disabled={field.disabled}
+          className={field.className}
+          disabled={disabled}
+          style={field.style}
           unCheckedChildren={field.uncheckedText}
           onBlur={controllerField.onBlur}
           onChange={(checked, event) => controllerField.onChange(checked, event)}

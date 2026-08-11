@@ -6,13 +6,14 @@ export default function AutoCompleteField({ field: suppliedField, ...props }) {
   return (
     <ControlledField
       field={field}
-      renderInput={({ controllerField }) => (
+      renderInput={({ controllerField, disabled }) => (
         <AutoComplete
           {...controllerField}
           value={controllerField.value ?? ''}
           allowClear
           aria-label={getFieldLabel(field)}
-          disabled={field.disabled}
+          className={field.className}
+          disabled={disabled}
           filterOption={field.filterOption ?? true}
           options={field.options}
           placeholder={field.placeholder || '입력 또는 선택'}

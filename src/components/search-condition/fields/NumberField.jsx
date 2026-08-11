@@ -10,6 +10,7 @@ export default function NumberField({ field: suppliedField, ...props }) {
         <InputNumber
           {...controllerField}
           aria-label={getFieldLabel(field)}
+          className={field.className}
           disabled={disabled}
           placeholder={field.placeholder || '입력'}
           style={getFieldWidth(field)}

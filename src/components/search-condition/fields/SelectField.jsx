@@ -11,6 +11,7 @@ export default function SelectField({ field: suppliedField, ...props }) {
           {...controllerField}
           allowClear
           aria-label={getFieldLabel(field)}
+          className={field.className}
           disabled={disabled}
           mode={field.mode}
           options={field.options}

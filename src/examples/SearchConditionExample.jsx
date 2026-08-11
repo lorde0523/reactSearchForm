@@ -213,6 +213,9 @@ export default function SearchConditionExample({
             checkedText="포함"
             uncheckedText="제외"
             defaultValue={false}
+            dependencies={['priority']}
+            disabled={({ values }) => values.priority !== 'urgent'}
+            style={{ marginInline: 4 }}
           />
           <AutoCompleteField
             name="region"
@@ -225,6 +228,7 @@ export default function SearchConditionExample({
             label="메모 검색어"
             width={220}
             placeholder="메모 검색어 입력"
+            style={{ minWidth: 220 }}
           />
         </SearchGroup>
       </SearchRow>

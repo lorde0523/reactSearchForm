@@ -16,6 +16,7 @@ export default function PickerFieldControl({ field }) {
             allowEmpty: field.allowEmpty ?? (disabled ? [true, true] : undefined),
           } : {})}
           aria-label={getFieldLabel(field)}
+          className={field.className}
           disabled={disabled}
           format={field.displayFormat || config.displayFormat}
           picker={config.picker}
