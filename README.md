@@ -41,6 +41,73 @@ pnpm dev
 
 각 입력은 `fields/` 아래 타입별 컴포넌트로 분리되어 있습니다. `ControlledField`가 react-hook-form의 `Controller`와 Ant Design `Form.Item`을 공통 처리합니다.
 
+## 필드별 onChange 추가 동작
+
+모든 필드의 `onChange`는 RHF 값이 먼저 변경된 다음 `onChange(value, context)` 형태로 호출됩니다. `value`는 이벤트가 아닌 실제 입력값으로 정규화됩니다.
+
+```jsx
+<SelectField
+  name="dateType"
+  label="날짜 기준"
+  options={dateTypeOptions}
+  onChange={(value, { form, name, values, rawValue, args }) => {
+    // 다른 필드를 함께 변경하는 예시
+    form.setValue('period', undefined, { shouldDirty: true });
+
+    // value: 현재 필드의 변경값
+    // values: 변경 직후 전체 폼 값
+    // args: Select option, DatePicker의 dateString 같은 AntD 추가 인자
+  }}
+/>
+```
+
+`TextField`는 문자열, `NumberField`는 숫자 또는 `null`, `SelectField`는 선택값, `DateField`는 dayjs 객체, `DateRangeField`는 dayjs 배열, `CheckboxField`는 boolean, `CheckboxGroupField`는 선택값 배열을 첫 번째 인자로 전달합니다.
+
+## 서버에서 받은 초기값 적용
+
+서버 응답을 state에 넣고 `defaultValues`로 전달하면 응답 객체가 변경되는 시점에 RHF의 `reset()`으로 전체 필드에 적용됩니다.
+
+```jsx
+function OrderSearchPage() {
+  const [serverInitialValues, setServerInitialValues] = useState({});
+
+  useEffect(() => {
+    let active = true;
+
+    getOrderSearchDefaults().then((response) => {
+      if (active) setServerInitialValues(response.data);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return (
+    <SearchConditionForm defaultValues={serverInitialValues}>
+      <SearchRow rowKey="basic" label="기본 조건">
+        <TextField name="keyword" label="검색어" />
+        <SearchGroup groupKey="period" label="조회 기간">
+          <DateRangeField name="period" label="조회 기간" />
+        </SearchGroup>
+      </SearchRow>
+    </SearchConditionForm>
+  );
+}
+```
+
+서버 응답 예시는 다음과 같습니다. 날짜와 기간은 문자열로 받아도 필드의 `deserialize` 규칙에 따라 dayjs 값으로 변환됩니다.
+
+```js
+{
+  keyword: '테스트 고객',
+  dateType: 'createdAt',
+  period: ['2026-08-01', '2026-08-31'],
+  urgent: true,
+  notificationChannels: ['sms', 'email']
+}
+```
+
 저장조건은 다음 형식으로 전달합니다.
 
 ```js

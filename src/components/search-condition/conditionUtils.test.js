@@ -109,6 +109,17 @@ describe('conditionUtils', () => {
     });
   });
 
+  it('서버 초기 날짜 문자열을 RHF 입력 값으로 변환한다', () => {
+    const defaults = buildDefaultValues(rows, {
+      keyword: '서버 값',
+      period: ['2026-08-01', '2026-08-31'],
+    });
+
+    expect(defaults.keyword).toBe('서버 값');
+    expect(defaults.period[0].format('YYYY-MM-DD')).toBe('2026-08-01');
+    expect(defaults.period[1].format('YYYY-MM-DD')).toBe('2026-08-31');
+  });
+
   it('저장된 날짜 값을 RHF 입력 값으로 복원한다', () => {
     const hydrated = hydrateSavedValues(
       rows,

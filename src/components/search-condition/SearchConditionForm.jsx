@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   App as AntdApp,
   Button,
@@ -19,6 +19,9 @@ import {
   createConditionSnapshot,
   hydrateSavedValues,
 } from './conditionUtils';
+
+const EMPTY_VALUES = {};
+const EMPTY_CONDITIONS = [];
 
 function PreviewTable({ preview }) {
   if (!preview.length) {
@@ -52,8 +55,8 @@ function PreviewTable({ preview }) {
 
 export default function SearchConditionForm({
   conditionKey,
-  defaultValues = {},
-  savedConditions = [],
+  defaultValues = EMPTY_VALUES,
+  savedConditions = EMPTY_CONDITIONS,
   onSearch,
   onSaveCondition,
   children,
@@ -68,7 +71,15 @@ export default function SearchConditionForm({
   const [selectedConditionId, setSelectedConditionId] = useState();
   const [snapshot, setSnapshot] = useState({ values: {}, preview: [] });
   const [saving, setSaving] = useState(false);
+  const previousDefaultValues = useRef(defaultValues);
   const hasDetail = rows.some((row) => row.detail);
+
+  useEffect(() => {
+    if (previousDefaultValues.current === defaultValues) return;
+    previousDefaultValues.current = defaultValues;
+    methods.reset(initialValues);
+    setSelectedConditionId(undefined);
+  }, [defaultValues, initialValues, methods]);
 
   const collectSnapshot = () => createConditionSnapshot(rows, methods.getValues());
 

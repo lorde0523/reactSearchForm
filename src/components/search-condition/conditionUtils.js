@@ -78,7 +78,7 @@ export function buildDefaultValues(rows, suppliedDefaults = {}) {
       .map((field) => [field.name, field.defaultValue]),
   );
 
-  return { ...schemaDefaults, ...suppliedDefaults };
+  return hydrateSavedValues(rows, suppliedDefaults, schemaDefaults);
 }
 
 export function createConditionSnapshot(rows, formValues) {

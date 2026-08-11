@@ -63,6 +63,9 @@ export default function SearchConditionExample({
             width={118}
             placeholder="날짜 기준"
             options={dateTypeOptions}
+            onChange={(_, { form }) => {
+              form.setValue('period', undefined, { shouldDirty: true });
+            }}
           />
           <DateRangeField name="period" label="조회 기간" width={250} />
         </SearchGroup>

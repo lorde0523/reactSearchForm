@@ -12,7 +12,7 @@ export default function CheckboxField({ field: suppliedField, ...props }) {
           name={controllerField.name}
           ref={controllerField.ref}
           onBlur={controllerField.onBlur}
-          onChange={(event) => controllerField.onChange(event.target.checked)}
+          onChange={(event) => controllerField.onChange(event.target.checked, event)}
         >
           {field.text}
         </Checkbox>
