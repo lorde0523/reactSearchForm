@@ -1,5 +1,5 @@
 import { Children, useContext } from 'react';
-import { Col, Row, Space, Typography } from 'antd';
+import { Col, Row, Space } from 'antd';
 import { useFormContext, useWatch } from 'react-hook-form';
 import SearchGroup from './SearchGroup';
 import {
@@ -8,7 +8,24 @@ import {
   RowControlToggleContext,
 } from '../model/SearchConditionContext';
 
-export default function SearchRow({ label, required, detail, detailOpen, children }) {
+function joinClassNames(...classNames) {
+  return classNames.filter(Boolean).join(' ');
+}
+
+export default function SearchRow({
+  label,
+  required,
+  detail,
+  detailOpen,
+  className,
+  classNames = {},
+  rowProps = {},
+  labelColProps = {},
+  contentRowProps = {},
+  ungroupedColProps = {},
+  fieldSpaceProps = {},
+  children,
+}) {
   const { control } = useFormContext();
   const contextDetailOpen = useContext(DetailVisibilityContext);
   const isDetailOpen = detailOpen ?? contextDetailOpen;
@@ -31,20 +48,55 @@ export default function SearchRow({ label, required, detail, detailOpen, childre
 
   return (
     <Row
-      align="middle"
-      className={`flex-group condition-row${detail && !isDetailOpen ? ' condition-row--hidden' : ''}`}
-      wrap={false}
+      align="top"
+      hidden={detail && !isDetailOpen}
+      wrap
+      {...rowProps}
+      className={joinClassNames(
+        'condition-form__row',
+        detail && !isDetailOpen && 'condition-form__row--hidden',
+        rowProps.className,
+        className,
+        classNames.root,
+      )}
     >
-      <Col className="category-name condition-row__label" flex="112px">
-        {label && <Typography.Text strong>{label}</Typography.Text>}
-        {required && <span className="required-mark" aria-label="필수">*</span>}
+      <Col
+        {...labelColProps}
+        className={joinClassNames(
+          'condition-form__row-label',
+          labelColProps.className,
+          classNames.label,
+        )}
+      >
+        {label && (
+          <span>
+            {label}
+            {required && <span aria-label="필수"> *</span>}
+          </span>
+        )}
       </Col>
       <RowControlToggleContext.Provider value={rowControlToggleName}>
         <ConditionDisabledContext.Provider value={rowDisabled}>
-          <Row className="category-list condition-row__groups" align="middle" wrap>
+          <Row
+            align="top"
+            wrap
+            {...contentRowProps}
+            className={joinClassNames(
+              'condition-form__row-content',
+              contentRowProps.className,
+              classNames.content,
+            )}
+          >
             {fields.length > 0 && (
-              <Col className="category-item condition-group condition-group--ungrouped" flex="none">
-                <Space align="start" size={8} wrap>{fields}</Space>
+              <Col
+                {...ungroupedColProps}
+                className={joinClassNames(
+                  'condition-form__ungrouped-fields',
+                  ungroupedColProps.className,
+                  classNames.ungrouped,
+                )}
+              >
+                <Space align="start" size={8} wrap {...fieldSpaceProps}>{fields}</Space>
               </Col>
             )}
             {groups}

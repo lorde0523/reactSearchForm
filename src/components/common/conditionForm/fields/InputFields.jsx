@@ -43,7 +43,7 @@ export function TextAreaField({ field: suppliedField, ...props }) {
           maxLength={field.maxLength}
           placeholder={field.placeholder || '입력'}
           showCount={field.showCount}
-          style={getFieldWidth(field, 240)}
+          style={getFieldWidth(field)}
         />
       )}
     />

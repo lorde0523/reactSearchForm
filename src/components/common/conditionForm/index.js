@@ -1,5 +1,3 @@
-import './styles.css';
-
 export * from './fields';
 export { default as SearchConditionForm } from './components/SearchConditionForm';
 export { default as SearchGroup } from './components/SearchGroup';

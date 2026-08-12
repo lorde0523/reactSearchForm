@@ -13,6 +13,34 @@ const RUNTIME_FIELD_PROPS = new Set([
   'width',
 ]);
 
+const RUNTIME_ROW_PROPS = new Set([
+  'className',
+  'classNames',
+  'contentRowProps',
+  'fieldSpaceProps',
+  'labelColProps',
+  'rowProps',
+  'ungroupedColProps',
+]);
+
+const RUNTIME_GROUP_PROPS = new Set([
+  'className',
+  'classNames',
+  'colProps',
+  'fieldSpaceProps',
+  'fieldsColProps',
+  'groupClassName',
+  'labelColProps',
+  'rowProps',
+  'toggleColProps',
+]);
+
+function omitProps(props, omittedKeys) {
+  return Object.fromEntries(
+    Object.entries(props).filter(([key]) => !omittedKeys.has(key)),
+  );
+}
+
 function createFieldSchema(props, type) {
   return Object.fromEntries(
     Object.entries({ ...props, type })
@@ -53,7 +81,7 @@ export function createRowsFromChildren(children) {
         const { children: rowChildren, toggle: ignoredRowToggle, ...rowProps } = node.props;
         void ignoredRowToggle;
         const row = {
-          ...rowProps,
+          ...omitProps(rowProps, RUNTIME_ROW_PROPS),
           key: rowProps.rowKey || rowProps.label,
           fields: [],
           groups: [],
@@ -64,16 +92,10 @@ export function createRowsFromChildren(children) {
       }
 
       if (kind === 'group' && currentRow) {
-        const {
-          children: groupChildren,
-          className,
-          groupClassName,
-          toggle,
-          ...groupProps
-        } = node.props;
+        const { children: groupChildren, toggle, ...groupProps } = node.props;
         const toggleField = createToggleField(toggle, groupProps.label);
         const group = {
-          ...groupProps,
+          ...omitProps(groupProps, RUNTIME_GROUP_PROPS),
           controlsRow: Boolean(toggle?.controlRow),
           key: groupProps.groupKey || groupProps.label,
           fields: toggleField ? [createFieldSchema(toggleField, 'checkbox')] : [],

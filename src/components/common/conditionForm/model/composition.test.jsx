@@ -12,6 +12,8 @@ describe('createRowsFromChildren', () => {
         rowKey="basic"
         label="기본 조건"
         required
+        classNames={{ label: 'page-row-label' }}
+        rowProps={{ gutter: 8 }}
       >
         <TextField
           field={{ label: '검색어', name: 'keyword' }}
@@ -23,6 +25,8 @@ describe('createRowsFromChildren', () => {
           groupKey="status"
           label="진행 상태"
           className="status-form-item"
+          classNames={{ label: 'page-group-label' }}
+          colProps={{ span: 8 }}
           toggle={{ name: 'useStatus', defaultValue: true, text: '사용' }}
         >
           <SelectField
@@ -42,6 +46,8 @@ describe('createRowsFromChildren', () => {
 
     expect(rows[0].key).toBe('basic');
     expect(rows[0]).not.toHaveProperty('controlToggleName');
+    expect(rows[0]).not.toHaveProperty('classNames');
+    expect(rows[0]).not.toHaveProperty('rowProps');
     expect(rows[0].fields[0]).toEqual({
       label: '검색어',
       name: 'keyword',
@@ -51,6 +57,8 @@ describe('createRowsFromChildren', () => {
     expect(rows[0].groups[0].key).toBe('status');
     expect(rows[0].groups[0].toggleName).toBe('useStatus');
     expect(rows[0].groups[0]).not.toHaveProperty('className');
+    expect(rows[0].groups[0]).not.toHaveProperty('classNames');
+    expect(rows[0].groups[0]).not.toHaveProperty('colProps');
     expect(rows[0].groups[0].fields).toEqual([
       expect.objectContaining({
         defaultValue: true,

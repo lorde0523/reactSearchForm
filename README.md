@@ -1,6 +1,6 @@
 # React 조회조건 폼
 
-Ant Design과 react-hook-form으로 만든 JSX composition 기반 공통 조회조건 폼입니다. JavaScript/JSX만 사용합니다.
+Ant Design의 `Row`, `Col`, `Form`과 react-hook-form으로 만든 기능 중심 공통 조회조건 폼입니다. JavaScript/JSX만 사용합니다. 모듈 자체 디자인 CSS는 제공하지 않으며 프로젝트의 Signlw/styled 컴포넌트와 스타일을 외부에서 연결하는 것을 전제로 합니다.
 
 ## 실행
 
@@ -21,7 +21,6 @@ src/components/common/conditionForm/
 ├─ components/  # SearchConditionForm, SearchGroup, SearchRow
 ├─ hooks/       # 탭 사이 현재 조회조건 공유 훅
 ├─ model/       # 초기값, 저장 스냅샷, picker 설정, context
-├─ styles.css
 └─ index.js     # 모든 페이지에서 사용하는 공개 API
 ```
 
@@ -41,16 +40,19 @@ import {
 
 ## 페이지에서 사용하기
 
-페이지는 `SearchConditionForm` 안에 row, group, 타입별 필드를 직접 조립합니다.
+페이지는 `useForm()`을 생성하고 `SearchConditionForm` 안에 row, group, 타입별 필드를 직접 조립합니다. 검색 입력값은 별도 `useState`로 복제하지 않습니다.
 
 ```jsx
+const formMethods = useForm();
+
 <SearchConditionForm
   conditionKey="order-search"
   defaultValues={{ status: 'active' }}
+  formMethods={formMethods}
   savedConditions={savedConditions}
-  onSearch={({ conditionKey, values }) => searchOrders(values)}
-  onSaveCondition={({ conditionKey, name, values }) =>
-    saveCondition({ conditionKey, name, values })
+  onSearch={({ conditionKey, preview, values }) => searchOrders(values)}
+  onSaveCondition={({ conditionKey, name, preview, values }) =>
+    saveCondition({ conditionKey, name, preview, values })
   }
 >
   <SearchRow rowKey="basic" label="기본 조건" required>
@@ -65,7 +67,27 @@ import {
 
 그룹에 포함되지 않은 필드는 저장 팝업에서 `SearchRow` 라벨 아래 하나로 합쳐집니다. 기본 입력은 `TextField`, `NumberField`, `SelectField`, `DateField`, `DateRangeField`, `CheckboxField`, `CheckboxGroupField`이며 페이지 전용 입력은 `CustomField`로 추가합니다.
 
-`SearchGroup`의 `label`과 `className`은 내부 `Form.Item`에 적용됩니다. 그룹 바깥쪽 `Col`에 클래스가 필요하면 `groupClassName`을 사용합니다.
+구조는 `SearchRow(Row) → 행 라벨(Col) → 행 콘텐츠(Row) → SearchGroup(Col) → 그룹 라벨(Col) → 필드 목록(Col)` 순서입니다. 그룹 라벨은 `Form.Item.label`이 아닌 독립된 `Col`이며 각 실제 필드만 `Controller + Form.Item`으로 관리합니다.
+
+레이아웃 클래스는 의미 기반 기본 클래스만 제공하고 CSS는 포함하지 않습니다. 페이지 전용 클래스는 `className`, `classNames`로 추가하고 AntD 속성은 `rowProps`, `colProps`, `labelColProps` 등에 전달합니다.
+
+```jsx
+<SearchRow
+  rowKey="basic"
+  label="기본 조건"
+  classNames={{ label: 'page-row-label', content: 'page-row-content' }}
+  labelColProps={{ span: 3 }}
+  contentRowProps={{ gutter: [12, 8] }}
+>
+  <SearchGroup
+    label="진행 상태"
+    classNames={{ label: 'page-group-label', fields: 'page-group-fields' }}
+    colProps={{ span: 8 }}
+  >
+    <SelectField name="status" label="진행 상태" options={statusOptions} />
+  </SearchGroup>
+</SearchRow>
+```
 
 그룹 앞의 활성화 체크박스는 `toggle`로 설정합니다. `defaultValue`를 생략하면 기본값은 `false`이므로 처음에는 체크가 해제되고 자식 필드도 비활성화됩니다. 체크를 해제하면 자식 필드는 조회·저장 값에서도 제외됩니다. 각 자식 필드에 같은 `dependencies`와 `disabled`를 반복할 필요가 없습니다.
 
@@ -73,8 +95,6 @@ import {
 <SearchGroup
   groupKey="period"
   label="조회 기간"
-  className="period-form-item"
-  groupClassName="period-group"
   toggle={{
     name: 'usePeriod',
     label: '조회 기간 사용',
@@ -221,9 +241,9 @@ import {
 
 각 입력은 `fields/` 아래 타입별 컴포넌트로 분리되어 있습니다. `ControlledField`가 react-hook-form의 `Controller`와 Ant Design `Form.Item`을 공통 처리합니다.
 
-## 화면 외부에서 폼값 변경
+## useState 대신 useForm으로 검색값 관리
 
-페이지에서 폼값을 직접 읽거나 변경해야 하면 부모에서 `useForm()`을 만들고 `formMethods`로 전달합니다. `formMethods`를 생략하면 `SearchConditionForm`이 내부 폼을 생성하므로 기존 사용법도 그대로 동작합니다.
+조회 필드값은 `useState`로 각각 만들지 않고 `useForm()`이 단일 원본으로 관리합니다. 페이지에서 만든 `formMethods`를 전달하면 서버값 적용, 개별 변경, 조회, 초기화를 모두 같은 인스턴스로 처리할 수 있습니다. `formMethods`를 생략하는 기존 내부 폼 방식도 지원하지만 페이지 제어가 필요한 경우 외부 생성을 권장합니다.
 
 ```jsx
 const formMethods = useForm();
@@ -435,9 +455,9 @@ const shareEnabled = false;
 />
 ```
 
-## 필드 스타일 전달
+## 프로젝트 스타일과 커스텀 필드 연결
 
-모든 기본 필드는 입력 컴포넌트에 적용되는 `style`, `className`과 `Form.Item`에 적용되는 `formItemStyle`, `formItemClassName`을 지원합니다.
+모듈에는 디자인 CSS가 없습니다. 기본 필드는 입력 컴포넌트에 적용되는 `style`, `className`과 필드 `Form.Item`에 적용되는 `formItemStyle`, `formItemClassName`을 전달만 합니다.
 
 ```jsx
 <TextField
@@ -451,30 +471,30 @@ const shareEnabled = false;
 />
 ```
 
-`width`와 `style.width`를 함께 전달하면 `style.width`가 우선합니다. `CustomField`는 render의 `field.style`, `field.className`, `field.formItemStyle`을 사용해 커스텀 입력에 직접 연결할 수 있습니다.
+기존 Signlw/styled 입력은 `CustomField.render`에서 연결합니다. 이때 RHF의 `controllerField`, 계산된 `disabled`, `form`을 그대로 받을 수 있어 공통 모듈이 프로젝트 스타일 구현을 알 필요가 없습니다.
 
 ## 서버에서 받은 초기값 적용
 
-서버 응답을 state에 넣고 `defaultValues`로 전달하면 응답 객체가 변경되는 시점에 RHF의 `reset()`으로 전체 필드에 적용됩니다.
+서버 응답은 별도 검색값 state로 복제하지 않고 RHF의 `reset()`으로 전체 적용합니다.
 
 ```jsx
 function OrderSearchPage() {
-  const [serverInitialValues, setServerInitialValues] = useState({});
+  const formMethods = useForm();
 
   useEffect(() => {
     let active = true;
 
     getOrderSearchDefaults().then((response) => {
-      if (active) setServerInitialValues(response.data);
+      if (active) formMethods.reset(response.data);
     });
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [formMethods]);
 
   return (
-    <SearchConditionForm defaultValues={serverInitialValues}>
+    <SearchConditionForm formMethods={formMethods}>
       <SearchRow rowKey="basic" label="기본 조건">
         <TextField name="keyword" label="검색어" />
         <SearchGroup groupKey="period" label="조회 기간">
@@ -528,7 +548,24 @@ function CustomerFields({ serverCustomer }) {
 
 초기값 우선순위는 `SearchConditionForm.defaultValues` → 필드 `initialValue` → 필드 `defaultValue`입니다. 배열이나 객체 형태의 `initialValue`는 불필요한 재적용을 막기 위해 state 또는 `useMemo`로 동일한 참조를 유지하는 것이 좋습니다.
 
-저장조건은 다음 형식으로 전달합니다.
+저장조건 목록은 폼값이 아니라 서버 또는 페이지가 관리하는 목록 상태이므로 `useState`나 서버 캐시를 사용해도 됩니다. 조회조건 저장 시 `values`와 팝업 출력용 `preview`가 한 번에 전달됩니다.
+
+```js
+onSaveCondition({
+  conditionKey: 'order-search',
+  name: '진행 중 주문',
+  values: { status: 'active' },
+  preview: [
+    {
+      key: 'basic-status',
+      label: '진행 상태',
+      fields: [{ name: 'status', label: '진행 상태', value: '진행 중' }],
+    },
+  ],
+})
+```
+
+저장된 목록은 다음 형식으로 다시 전달합니다.
 
 ```js
 [{ id: 'condition-id', name: '저장 이름', values: { status: 'active' } }]

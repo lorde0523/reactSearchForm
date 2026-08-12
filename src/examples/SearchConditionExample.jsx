@@ -1,4 +1,4 @@
-import { Input } from 'antd';
+import { Button, Input } from 'antd';
 import { useForm } from 'react-hook-form';
 import {
   AutoCompleteField,
@@ -70,27 +70,36 @@ export default function SearchConditionExample({
     tabKey,
   });
 
+  const applyExampleValues = () => {
+    const options = { shouldDirty: true, shouldValidate: true };
+    formMethods.setValue('keyword', 'react-hook-form 적용값', options);
+    formMethods.setValue('status', 'active', options);
+    formMethods.setValue('useCustomerConditions', true, options);
+    formMethods.setValue('customerName', '세빛상사', options);
+  };
+
   return (
-    <SearchConditionForm
-      conditionKey={tabKey}
-      defaultValues={defaultValues}
-      formMethods={formMethods}
-      savedConditions={savedConditions}
-      onSaveCondition={onSaveCondition}
-      onSearch={onSearch}
-    >
+    <>
+      <Button onClick={applyExampleValues}>useForm.setValue 적용 예시</Button>
+
+      <SearchConditionForm
+        conditionKey={tabKey}
+        defaultValues={defaultValues}
+        formMethods={formMethods}
+        savedConditions={savedConditions}
+        onSaveCondition={onSaveCondition}
+        onSearch={onSearch}
+      >
       <SearchRow rowKey="basic" label="기본 조건" required>
         <TextField
           name="keyword"
           label="통합 검색"
-          width={170}
           placeholder="고객명 또는 번호"
         />
 
         <SearchGroup
           groupKey="period"
           label="조회 기간"
-          className="period-group-form-item"
           toggle={{
             name: 'usePeriod',
             label: '조회 기간 사용',
@@ -100,7 +109,6 @@ export default function SearchConditionExample({
           <SelectField
             name="dateType"
             label="날짜 기준"
-            width={118}
             placeholder="날짜 기준"
             options={dateTypeOptions}
             onChange={(_, { form }) => {
@@ -110,7 +118,6 @@ export default function SearchConditionExample({
           <DateRangeField
             name="period"
             label="조회 기간"
-            width={250}
             dependencies={['dateType']}
             disabled={({ values }) => !values.dateType}
           />
@@ -120,7 +127,6 @@ export default function SearchConditionExample({
           <SelectField
             name="status"
             label="진행 상태"
-            width={140}
             placeholder="전체"
             options={statusOptions}
           />
@@ -140,11 +146,10 @@ export default function SearchConditionExample({
             hideInPreview: true,
           }}
         >
-          <TextField name="customerName" label="고객명" width={140} placeholder="고객명" />
+          <TextField name="customerName" label="고객명" placeholder="고객명" />
           <TextField
             name="customerNumber"
             label="고객 번호"
-            width={150}
             placeholder="고객 번호"
             rules={{ pattern: { value: /^[0-9-]*$/, message: '숫자와 하이픈만 입력할 수 있습니다.' } }}
           />
@@ -154,7 +159,6 @@ export default function SearchConditionExample({
           <SelectField
             name="channel"
             label="접수 채널"
-            width={140}
             placeholder="채널 선택"
             options={channelOptions}
           />
@@ -171,8 +175,8 @@ export default function SearchConditionExample({
         />
 
         <SearchGroup groupKey="amount" label="금액 범위">
-          <NumberField name="minAmount" label="최소 금액" width={130} placeholder="최소 금액" />
-          <NumberField name="maxAmount" label="최대 금액" width={130} placeholder="최대 금액" />
+          <NumberField name="minAmount" label="최소 금액" placeholder="최소 금액" />
+          <NumberField name="maxAmount" label="최대 금액" placeholder="최대 금액" />
         </SearchGroup>
 
         <SearchGroup groupKey="notificationChannels" label="알림 채널">
@@ -188,7 +192,6 @@ export default function SearchConditionExample({
           <CustomField
             name="managerCode"
             label="담당자 코드"
-            width={150}
             render={({ controllerField }) => (
               <Input
                 {...controllerField}
@@ -196,7 +199,6 @@ export default function SearchConditionExample({
                 allowClear
                 prefix="M-"
                 placeholder="코드 입력"
-                style={{ width: 150 }}
               />
             )}
             serialize={(value) => String(value).trim().toUpperCase()}
@@ -248,7 +250,6 @@ export default function SearchConditionExample({
             defaultValue={false}
             dependencies={['priority']}
             disabled={({ values }) => values.priority !== 'urgent'}
-            style={{ marginInline: 4 }}
           />
           <AutoCompleteField
             name="region"
@@ -259,12 +260,11 @@ export default function SearchConditionExample({
           <TextAreaField
             name="memoKeyword"
             label="메모 검색어"
-            width={220}
             placeholder="메모 검색어 입력"
-            style={{ minWidth: 220 }}
           />
         </SearchGroup>
       </SearchRow>
-    </SearchConditionForm>
+      </SearchConditionForm>
+    </>
   );
 }

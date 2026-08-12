@@ -1,4 +1,4 @@
-import { Col, Form, Row, Space } from 'antd';
+import { Col, Row, Space } from 'antd';
 import { useContext } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { CheckboxField } from '../fields';
@@ -8,22 +8,56 @@ import {
 } from '../model/SearchConditionContext';
 import { createToggleField } from '../model/composition';
 
-function GroupFormItem({ className, label, children }) {
+function joinClassNames(...classNames) {
+  return classNames.filter(Boolean).join(' ');
+}
+
+function GroupContent({
+  label,
+  classNames,
+  labelColProps,
+  fieldsColProps,
+  fieldSpaceProps,
+  children,
+}) {
   return (
-    <Form.Item
-      className={['condition-group__form-item', className].filter(Boolean).join(' ')}
-      colon={false}
-      label={label}
-      labelCol={{ flex: '68px' }}
-      layout="horizontal"
-      wrapperCol={{ flex: 'auto' }}
-    >
-      <Space align="start" size={8} wrap>{children}</Space>
-    </Form.Item>
+    <>
+      {label && (
+        <Col
+          {...labelColProps}
+          className={joinClassNames(
+            'condition-form__group-label',
+            labelColProps.className,
+            classNames.label,
+          )}
+        >
+          <span>{label}</span>
+        </Col>
+      )}
+      <Col
+        {...fieldsColProps}
+        className={joinClassNames(
+          'condition-form__group-fields',
+          fieldsColProps.className,
+          classNames.fields,
+        )}
+      >
+        <Space align="start" size={8} wrap {...fieldSpaceProps}>{children}</Space>
+      </Col>
+    </>
   );
 }
 
-function ToggleableGroup({ className, label, toggle, children }) {
+function ToggleableGroup({
+  label,
+  toggle,
+  classNames,
+  toggleColProps,
+  labelColProps,
+  fieldsColProps,
+  fieldSpaceProps,
+  children,
+}) {
   const { control } = useFormContext();
   const parentDisabled = useContext(ConditionDisabledContext);
   const rowControlToggleName = useContext(RowControlToggleContext);
@@ -32,40 +66,90 @@ function ToggleableGroup({ className, label, toggle, children }) {
 
   return (
     <>
-      <Col className="condition-group__toggle" flex="none">
+      <Col
+        {...toggleColProps}
+        className={joinClassNames(
+          'condition-form__group-toggle',
+          toggleColProps.className,
+          classNames.toggle,
+        )}
+      >
         <ConditionDisabledContext.Provider value={controlsRow ? false : parentDisabled}>
           <CheckboxField field={toggle} />
         </ConditionDisabledContext.Provider>
       </Col>
-      <Col className="condition-group__body" flex="auto">
-        <ConditionDisabledContext.Provider value={parentDisabled || !Boolean(enabled)}>
-          <GroupFormItem className={className} label={label}>{children}</GroupFormItem>
-        </ConditionDisabledContext.Provider>
-      </Col>
+      <ConditionDisabledContext.Provider value={parentDisabled || !Boolean(enabled)}>
+        <GroupContent
+          classNames={classNames}
+          fieldSpaceProps={fieldSpaceProps}
+          fieldsColProps={fieldsColProps}
+          label={label}
+          labelColProps={labelColProps}
+        >
+          {children}
+        </GroupContent>
+      </ConditionDisabledContext.Provider>
     </>
   );
 }
 
-export default function SearchGroup({ label, className, groupClassName, toggle, children }) {
+export default function SearchGroup({
+  label,
+  className,
+  classNames = {},
+  toggle,
+  colProps = {},
+  rowProps = {},
+  toggleColProps = {},
+  labelColProps = {},
+  fieldsColProps = {},
+  fieldSpaceProps = {},
+  children,
+}) {
   const toggleField = createToggleField(toggle, label);
 
   return (
     <Col
-      className={[
-        'category-item condition-group condition-group--labeled',
-        groupClassName,
-      ].filter(Boolean).join(' ')}
-      flex="none"
+      {...colProps}
+      className={joinClassNames(
+        'condition-form__group',
+        colProps.className,
+        className,
+        classNames.root,
+      )}
     >
-      <Row className="condition-group__row" align="top" gutter={8} wrap={false}>
+      <Row
+        align="top"
+        wrap
+        {...rowProps}
+        className={joinClassNames(
+          'condition-form__group-row',
+          rowProps.className,
+          classNames.row,
+        )}
+      >
         {toggleField ? (
-          <ToggleableGroup className={className} label={label} toggle={toggleField}>
+          <ToggleableGroup
+            classNames={classNames}
+            fieldSpaceProps={fieldSpaceProps}
+            fieldsColProps={fieldsColProps}
+            label={label}
+            labelColProps={labelColProps}
+            toggle={toggleField}
+            toggleColProps={toggleColProps}
+          >
             {children}
           </ToggleableGroup>
         ) : (
-          <Col className="condition-group__body" flex="auto">
-            <GroupFormItem className={className} label={label}>{children}</GroupFormItem>
-          </Col>
+          <GroupContent
+            classNames={classNames}
+            fieldSpaceProps={fieldSpaceProps}
+            fieldsColProps={fieldsColProps}
+            label={label}
+            labelColProps={labelColProps}
+          >
+            {children}
+          </GroupContent>
         )}
       </Row>
     </Col>

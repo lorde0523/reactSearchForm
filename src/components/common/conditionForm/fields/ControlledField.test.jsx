@@ -33,7 +33,7 @@ describe('resolveFieldDisabled', () => {
     )).toBe(true);
   });
 
-  it('기본 width와 전달받은 style을 병합하고 style을 우선한다', () => {
+  it('width와 전달받은 style을 병합하고 style을 우선한다', () => {
     expect(getFieldWidth({
       width: 160,
       style: { color: 'red', width: 240 },
@@ -41,6 +41,10 @@ describe('resolveFieldDisabled', () => {
       color: 'red',
       width: 240,
     });
+  });
+
+  it('페이지에서 크기를 전달하지 않으면 공통 필드가 폭을 강제하지 않는다', () => {
+    expect(getFieldWidth({})).toEqual({});
   });
 });
 

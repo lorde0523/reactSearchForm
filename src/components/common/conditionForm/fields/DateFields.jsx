@@ -39,7 +39,7 @@ export function DateRangeField({ field: suppliedField, ...props }) {
           className={field.className}
           disabled={disabled}
           format={field.format || 'YYYY-MM-DD'}
-          style={getFieldWidth(field, 260)}
+          style={getFieldWidth(field)}
         />
       )}
     />
@@ -67,7 +67,7 @@ function PickerFieldControl({ field }) {
           format={field.displayFormat || config.displayFormat}
           picker={config.picker}
           placeholder={field.placeholder}
-          style={getFieldWidth(field, config.width)}
+          style={getFieldWidth(field)}
         />
       )}
     />

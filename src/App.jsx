@@ -49,17 +49,17 @@ function BusinessSearchPage() {
     enabled: shareEnabled,
   });
 
-  const handleSearch = ({ conditionKey, values }) => {
-    setLastSearch({ conditionKey, values });
+  const handleSearch = ({ conditionKey, preview, values }) => {
+    setLastSearch({ conditionKey, preview, values });
     message.success('조회조건을 적용했습니다.');
   };
 
-  const handleSaveCondition = async ({ conditionKey, name, values }) => {
+  const handleSaveCondition = async ({ conditionKey, name, preview, values }) => {
     setSavedConditionsByTab((current) => ({
       ...current,
       [conditionKey]: [
         ...(current[conditionKey] || []),
-        { id: `${conditionKey}-${Date.now()}`, name, values },
+        { id: `${conditionKey}-${Date.now()}`, name, preview, values },
       ],
     }));
   };

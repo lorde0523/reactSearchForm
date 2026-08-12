@@ -23,13 +23,27 @@ import {
 const EMPTY_VALUES = {};
 const EMPTY_CONDITIONS = [];
 
-function PreviewTable({ preview }) {
+function joinClassNames(...classNames) {
+  return classNames.filter(Boolean).join(' ');
+}
+
+function PreviewTable({ preview, classNames }) {
   if (!preview.length) {
-    return <div className="save-preview__empty">입력된 조회조건이 없습니다.</div>;
+    return (
+      <div className={joinClassNames('condition-form__preview-empty', classNames.previewEmpty)}>
+        입력된 조회조건이 없습니다.
+      </div>
+    );
   }
 
   const columns = [
-    { title: '조회 항목', dataIndex: 'label', key: 'label', width: 150, className: 'save-preview__label' },
+    {
+      title: '조회 항목',
+      dataIndex: 'label',
+      key: 'label',
+      width: 150,
+      className: joinClassNames('condition-form__preview-label', classNames.previewLabel),
+    },
     {
       title: '조회 값',
       key: 'value',
@@ -43,7 +57,7 @@ function PreviewTable({ preview }) {
   return (
     <Table
       bordered
-      className="save-preview"
+      className={joinClassNames('condition-form__preview', classNames.preview)}
       columns={columns}
       dataSource={preview}
       pagination={false}
@@ -58,6 +72,9 @@ export default function SearchConditionForm({
   defaultValues = EMPTY_VALUES,
   formMethods,
   savedConditions = EMPTY_CONDITIONS,
+  className,
+  classNames = {},
+  formProps = {},
   onSearch,
   onSaveCondition,
   children,
@@ -89,7 +106,12 @@ export default function SearchConditionForm({
 
   const submitSearch = async () => {
     const nextSnapshot = collectSnapshot();
-    await onSearch?.({ conditionKey, values: nextSnapshot.values });
+    await onSearch?.({
+      conditionKey,
+      form: methods,
+      preview: nextSnapshot.preview,
+      values: nextSnapshot.values,
+    });
   };
 
   const resetConditions = () => {
@@ -113,7 +135,13 @@ export default function SearchConditionForm({
 
     setSaving(true);
     try {
-      await onSaveCondition?.({ conditionKey, name, values: snapshot.values });
+      await onSaveCondition?.({
+        conditionKey,
+        form: methods,
+        name,
+        preview: snapshot.preview,
+        values: snapshot.values,
+      });
       message.success('조회조건을 저장했습니다.');
       setSaveModalOpen(false);
     } catch (error) {
@@ -133,17 +161,27 @@ export default function SearchConditionForm({
 
   return (
     <FormProvider {...methods}>
-      <Form className="search-panel" layout="vertical" onFinish={methods.handleSubmit(submitSearch)}>
-        <div className="search-panel__layout">
-          <div className="favorite-box">
-            <div className="favorite-box__heading">
+      <Form
+        layout="vertical"
+        {...formProps}
+        className={joinClassNames(
+          'condition-form',
+          formProps.className,
+          className,
+          classNames.root,
+        )}
+        onFinish={methods.handleSubmit(submitSearch)}
+      >
+        <div className={joinClassNames('condition-form__layout', classNames.layout)}>
+          <div className={joinClassNames('condition-form__favorites', classNames.favorites)}>
+            <div className={joinClassNames('condition-form__favorites-header', classNames.favoritesHeader)}>
               <Typography.Text strong>조회조건 즐겨찾기</Typography.Text>
               <Button type="text" size="small" icon={<StarFilled />} onClick={openSaveModal}>저장</Button>
             </div>
             <Select
               allowClear
               aria-label="저장된 조회조건"
-              className="favorite-box__select"
+              className={joinClassNames('condition-form__favorites-select', classNames.favoritesSelect)}
               options={savedConditions.map(({ id, name }) => ({ value: id, label: name }))}
               placeholder="저장조건 선택"
               value={selectedConditionId}
@@ -152,13 +190,13 @@ export default function SearchConditionForm({
             />
           </div>
 
-          <div className="condition-box">
+          <div className={joinClassNames('condition-form__content', classNames.content)}>
             <DetailVisibilityContext.Provider value={detailOpen}>
               {children}
             </DetailVisibilityContext.Provider>
           </div>
 
-          <div className="search-actions">
+          <div className={joinClassNames('condition-form__actions', classNames.actions)}>
             <Button block icon={<ReloadOutlined />} onClick={resetConditions}>초기화</Button>
             <Button block htmlType="submit" type="primary" icon={<SearchOutlined />}>조회</Button>
             {hasDetail && (
@@ -175,35 +213,35 @@ export default function SearchConditionForm({
         </div>
 
         <Modal
-        centered
-        destroyOnHidden
-        footer={null}
-        open={saveModalOpen}
-        title="조회조건 저장"
-        width={680}
-        onCancel={() => !saving && setSaveModalOpen(false)}
-      >
-        <div className="save-modal__name">
-          <Typography.Text strong>저장 이름</Typography.Text>
-          <Input
-            autoFocus
-            maxLength={40}
-            placeholder="예: 이번 달 진행 건"
-            showCount
-            value={conditionName}
-            onChange={(event) => setConditionName(event.target.value)}
-            onPressEnter={(event) => {
-              event.preventDefault();
-              saveCondition();
-            }}
-          />
-        </div>
-        <PreviewTable preview={snapshot.preview} />
-        <Divider className="save-modal__divider" />
-        <div className="save-modal__footer">
-          <Button disabled={saving} onClick={() => setSaveModalOpen(false)}>취소</Button>
-          <Button loading={saving} type="primary" onClick={saveCondition}>저장</Button>
-        </div>
+          centered
+          destroyOnHidden
+          footer={null}
+          open={saveModalOpen}
+          title="조회조건 저장"
+          width={680}
+          onCancel={() => !saving && setSaveModalOpen(false)}
+        >
+          <div className={joinClassNames('condition-form__save-name', classNames.saveName)}>
+            <Typography.Text strong>저장 이름</Typography.Text>
+            <Input
+              autoFocus
+              maxLength={40}
+              placeholder="예: 이번 달 진행 건"
+              showCount
+              value={conditionName}
+              onChange={(event) => setConditionName(event.target.value)}
+              onPressEnter={(event) => {
+                event.preventDefault();
+                saveCondition();
+              }}
+            />
+          </div>
+          <PreviewTable classNames={classNames} preview={snapshot.preview} />
+          <Divider className={joinClassNames('condition-form__save-divider', classNames.saveDivider)} />
+          <div className={joinClassNames('condition-form__save-footer', classNames.saveFooter)}>
+            <Button disabled={saving} onClick={() => setSaveModalOpen(false)}>취소</Button>
+            <Button loading={saving} type="primary" onClick={saveCondition}>저장</Button>
+          </div>
         </Modal>
       </Form>
     </FormProvider>
