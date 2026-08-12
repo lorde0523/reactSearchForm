@@ -18,11 +18,13 @@ pnpm dev
 ```text
 src/components/search-condition/
 ├─ atoms/       # RHF Controller와 연결된 입력 필드
-├─ molecules/   # SearchGroup, SearchRow
-├─ organisms/   # SearchConditionForm
+├─ molecules/   # SearchGroup, SearchRow (최상위 index.js에서 직접 export)
+├─ organisms/   # SearchConditionForm (최상위 index.js에서 직접 export)
 ├─ model/       # 초기값, 저장 스냅샷, picker 설정, context
 └─ index.js     # 페이지에서 사용하는 공개 API
 ```
+
+하위 폴더별 `index.js`는 일괄적으로 만들지 않습니다. 여러 필드를 묶는 `atoms/index.js`와 외부 공개 진입점인 최상위 `index.js`만 유지하며, 컴포넌트가 한두 개인 `molecules`, `organisms`는 최상위에서 파일을 직접 export합니다.
 
 페이지에서는 Atomic 내부 경로를 직접 참조하지 않고 공통 진입점만 import합니다.
 
