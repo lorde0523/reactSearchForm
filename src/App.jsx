@@ -1,8 +1,21 @@
-import { useMemo, useState } from 'react';
-import { App as AntdApp, Button, Col, ConfigProvider, Row, Table, Tag, Typography } from 'antd';
+import { useState } from 'react';
+import { App as AntdApp, Col, ConfigProvider, Row, Switch, Table, Tabs, Tag, Typography } from 'antd';
 import koKR from 'antd/locale/ko_KR';
-import { useForm } from 'react-hook-form';
+import { useSearchConditionShareState } from './components/search-condition';
 import SearchConditionExample from './examples/SearchConditionExample';
+
+const SHARED_FIELD_NAMES = [
+  'keyword',
+  'usePeriod',
+  'dateType',
+  'period',
+  'status',
+];
+
+const TAB_DEFAULT_VALUES = {
+  reception: { dateType: 'createdAt', usePeriod: true },
+  history: { dateType: 'updatedAt', usePeriod: true },
+};
 
 const tableColumns = [
   { title: '번호', dataIndex: 'id', width: 80, align: 'center' },
@@ -28,32 +41,36 @@ const tableData = [
 
 function BusinessSearchPage() {
   const { message } = AntdApp.useApp();
-  const formMethods = useForm();
-  const defaultValues = useMemo(() => ({ dateType: 'createdAt' }), []);
-  const [savedConditions, setSavedConditions] = useState([
-    { id: 'active-online', name: '진행 중인 온라인 건', values: { status: 'active', channel: 'online' } },
-  ]);
+  const [activeTab, setActiveTab] = useState('reception');
+  const [shareEnabled, setShareEnabled] = useState(false);
+  const [savedConditionsByTab, setSavedConditionsByTab] = useState({
+    reception: [
+      { id: 'active-online', name: '진행 중인 온라인 건', values: { status: 'active', channel: 'online' } },
+    ],
+    history: [
+      { id: 'completed', name: '완료된 변경 이력', values: { status: 'done' } },
+    ],
+  });
   const [lastSearch, setLastSearch] = useState({});
+  const conditionShare = useSearchConditionShareState({
+    activeTab,
+    enabled: shareEnabled,
+    fieldNames: SHARED_FIELD_NAMES,
+  });
 
-  const handleSearch = ({ values }) => {
-    setLastSearch(values);
+  const handleSearch = ({ conditionKey, values }) => {
+    setLastSearch({ conditionKey, values });
     message.success('조회조건을 적용했습니다.');
   };
 
-  const handleSaveCondition = async ({ name, values }) => {
-    setSavedConditions((current) => [
+  const handleSaveCondition = async ({ conditionKey, name, values }) => {
+    setSavedConditionsByTab((current) => ({
       ...current,
-      { id: `condition-${Date.now()}`, name, values },
-    ]);
-  };
-
-  const changeFormValues = () => {
-    const options = { shouldDirty: true, shouldValidate: true };
-    formMethods.setValue('usePeriod', true, options);
-    formMethods.setValue('dateType', 'updatedAt', options);
-    formMethods.setValue('status', 'active', options);
-    formMethods.setValue('useCustomerConditions', true, options);
-    formMethods.setValue('customerName', '세빛상사', options);
+      [conditionKey]: [
+        ...(current[conditionKey] || []),
+        { id: `${conditionKey}-${Date.now()}`, name, values },
+      ],
+    }));
   };
 
   return (
@@ -63,18 +80,44 @@ function BusinessSearchPage() {
           <Typography.Title level={3}>업무 조회</Typography.Title>
           <Typography.Text type="secondary">조건을 입력한 다음 조회해 주세요.</Typography.Text>
         </Col>
-        <Col>
-          <Button onClick={changeFormValues}>외부에서 폼 값 변경</Button>
+        <Col className="share-control">
+          <Typography.Text>현재 조회조건을 다른 탭에 공유</Typography.Text>
+          <Switch
+            aria-label="현재 조회조건 공유"
+            checked={shareEnabled}
+            onChange={setShareEnabled}
+          />
         </Col>
       </Row>
 
-      <SearchConditionExample
-        defaultValues={defaultValues}
-        formMethods={formMethods}
-        savedConditions={savedConditions}
-        onSaveCondition={handleSaveCondition}
-        onSearch={handleSearch}
-      />
+      <Tabs
+        activeKey={activeTab}
+        className="search-tabs"
+        destroyOnHidden={false}
+        onChange={setActiveTab}
+      >
+        <Tabs.TabPane tab="접수 조회" key="reception">
+          <SearchConditionExample
+            conditionShare={conditionShare}
+            defaultValues={TAB_DEFAULT_VALUES.reception}
+            savedConditions={savedConditionsByTab.reception}
+            tabKey="reception"
+            onSaveCondition={handleSaveCondition}
+            onSearch={handleSearch}
+          />
+        </Tabs.TabPane>
+
+        <Tabs.TabPane tab="변경 이력 조회" key="history">
+          <SearchConditionExample
+            conditionShare={conditionShare}
+            defaultValues={TAB_DEFAULT_VALUES.history}
+            savedConditions={savedConditionsByTab.history}
+            tabKey="history"
+            onSaveCondition={handleSaveCondition}
+            onSearch={handleSearch}
+          />
+        </Tabs.TabPane>
+      </Tabs>
 
       <section className="result-grid" aria-label="조회 결과">
         <Row className="result-grid__heading" align="middle" justify="space-between">

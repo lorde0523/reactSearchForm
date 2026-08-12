@@ -214,6 +214,94 @@ const formMethods = useForm();
 
 현재 전체값은 `formMethods.getValues()`, 특정값 구독은 `useWatch({ control: formMethods.control, name: 'status' })`, 전체 초기화는 `formMethods.reset(values)`를 사용합니다.
 
+## 탭 사이 현재 조회조건 공유
+
+각 `Tabs.TabPane` 안의 화면이 자체 `useForm()`과 `SearchConditionForm`을 가지면서도 현재 조회조건만 선택적으로 공유할 수 있습니다. 공유 폼을 따로 만들지 않고 다음 두 훅을 사용합니다.
+
+- `useSearchConditionShareState`: Tabs가 있는 상위 화면에서 공유 여부와 최신 공유값 관리
+- `useSearchConditionSync`: 각 하위 탭의 RHF 폼을 공유값과 동기화
+
+공유 여부에는 별도 type이 필요하지 않습니다. 토글 화면은 state, 항상 공유하는 화면은 `true`, 공유하지 않는 화면은 `false`를 전달합니다.
+
+```jsx
+const SHARED_FIELD_NAMES = [
+  'keyword',
+  'dateType',
+  'period',
+  'status',
+];
+
+function SearchTabs() {
+  const [activeTab, setActiveTab] = useState('order');
+  const [shareEnabled, setShareEnabled] = useState(false);
+
+  const conditionShare = useSearchConditionShareState({
+    activeTab,
+    enabled: shareEnabled,
+    fieldNames: SHARED_FIELD_NAMES,
+  });
+
+  return (
+    <>
+      <Switch
+        checked={shareEnabled}
+        onChange={setShareEnabled}
+      />
+
+      <Tabs activeKey={activeTab} onChange={setActiveTab}>
+        <Tabs.TabPane tab="주문 조회" key="order">
+          <OrderSearchTab conditionShare={conditionShare} />
+        </Tabs.TabPane>
+
+        <Tabs.TabPane tab="배송 조회" key="delivery">
+          <DeliverySearchTab conditionShare={conditionShare} />
+        </Tabs.TabPane>
+      </Tabs>
+    </>
+  );
+}
+```
+
+하위 탭은 기존처럼 자체 폼을 생성하고 동기화 훅만 추가합니다.
+
+```jsx
+function OrderSearchTab({ conditionShare }) {
+  const formMethods = useForm();
+
+  useSearchConditionSync({
+    tabKey: 'order',
+    formMethods,
+    conditionShare,
+  });
+
+  return (
+    <SearchConditionForm
+      conditionKey="order"
+      formMethods={formMethods}
+      savedConditions={orderSavedConditions}
+    >
+      {/* 주문 탭 조회조건 */}
+    </SearchConditionForm>
+  );
+}
+```
+
+활성 탭이 공유값의 기준이 됩니다. 토글을 켜는 순간 현재 활성 탭의 기존값이 전달되고, 이후 변경값도 다른 탭에 반영됩니다. 아직 열지 않은 탭은 처음 마운트될 때 최신 공유값을 적용합니다.
+
+항상 공유하는 화면은 토글을 렌더링하지 않고 고정값을 사용합니다.
+
+```jsx
+const shareEnabled = true;
+```
+
+공유하지 않는 화면은 `false`를 전달하거나 두 훅을 사용하지 않습니다.
+
+```jsx
+const shareEnabled = false;
+```
+
+`fieldNames`를 생략하면 폼 전체를 공유하고, 지정하면 해당 필드만 공유합니다. 저장된 조회조건 목록은 이 훅의 대상이 아니므로 기존처럼 각 탭의 `conditionKey`와 `savedConditions`로 분리합니다.
+
 ## 필드별 onChange 추가 동작
 
 모든 필드의 `onChange`는 RHF 값이 먼저 변경된 다음 `onChange(value, context)` 형태로 호출됩니다. `value`는 이벤트가 아닌 실제 입력값으로 정규화됩니다.

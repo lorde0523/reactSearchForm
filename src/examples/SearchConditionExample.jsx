@@ -1,4 +1,5 @@
 import { Input } from 'antd';
+import { useForm } from 'react-hook-form';
 import {
   AutoCompleteField,
   CheckboxField,
@@ -16,6 +17,7 @@ import {
   SwitchField,
   TextAreaField,
   TextField,
+  useSearchConditionSync,
 } from '../components/search-condition';
 
 const statusOptions = [
@@ -53,15 +55,24 @@ const regionOptions = [
 ];
 
 export default function SearchConditionExample({
+  conditionShare,
   defaultValues,
-  formMethods,
+  tabKey,
   savedConditions,
   onSaveCondition,
   onSearch,
 }) {
+  const formMethods = useForm();
+
+  useSearchConditionSync({
+    conditionShare,
+    formMethods,
+    tabKey,
+  });
+
   return (
     <SearchConditionForm
-      conditionKey="business-search"
+      conditionKey={tabKey}
       defaultValues={defaultValues}
       formMethods={formMethods}
       savedConditions={savedConditions}

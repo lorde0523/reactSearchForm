@@ -17,6 +17,8 @@ button, input { font: inherit; }
 
 .page-heading { margin-bottom: 16px; }
 .page-heading .ant-typography { margin: 0; }
+.share-control { display: flex; align-items: center; gap: 10px; }
+.search-tabs > .ant-tabs-nav { margin-bottom: 12px; }
 
 .result-grid {
   margin-top: 16px;
