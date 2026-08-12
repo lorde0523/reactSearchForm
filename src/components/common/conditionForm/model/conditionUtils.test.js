@@ -324,29 +324,31 @@ describe('conditionUtils', () => {
     ).usePeriod).toBe(false);
   });
 
-  it('row toggle이 꺼지면 해당 줄의 일반 필드와 그룹을 모두 제외한다', () => {
+  it('controlRow 그룹 toggle이 꺼지면 해당 줄의 일반 필드와 모든 그룹을 제외한다', () => {
     const rowToggleRows = [
       {
         key: 'customer',
         label: '고객 조건',
-        toggleName: 'useCustomerConditions',
-        fields: [
-          {
-            name: 'useCustomerConditions',
-            label: '고객 조건 사용',
-            type: 'checkbox',
-            includeFalsy: true,
-            hideFalsyInPreview: true,
-            defaultValue: false,
-            checkedText: '사용',
-          },
-          { name: 'keyword', label: '검색어', type: 'text' },
-        ],
+        controlToggleName: 'useCustomerConditions',
+        fields: [{ name: 'keyword', label: '검색어', type: 'text' }],
         groups: [
           {
             key: 'customerInfo',
             label: '고객 정보',
-            fields: [{ name: 'customerName', label: '고객명', type: 'text' }],
+            controlsRow: true,
+            toggleName: 'useCustomerConditions',
+            fields: [
+              {
+                name: 'useCustomerConditions',
+                label: '고객 조건 사용',
+                type: 'checkbox',
+                includeFalsy: true,
+                hideFalsyInPreview: true,
+                defaultValue: false,
+                checkedText: '사용',
+              },
+              { name: 'customerName', label: '고객명', type: 'text' },
+            ],
           },
         ],
       },

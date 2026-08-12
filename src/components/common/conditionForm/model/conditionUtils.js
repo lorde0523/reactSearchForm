@@ -174,10 +174,8 @@ export function createConditionSnapshot(rows, formValues) {
   };
 
   rows.forEach((row) => {
-    const rowDisabled = row.toggleName && formValues[row.toggleName] !== true;
-    const rowFields = rowDisabled
-      ? (row.fields || []).filter((field) => field.name === row.toggleName)
-      : (row.fields || []);
+    const rowDisabled = row.controlToggleName && formValues[row.controlToggleName] !== true;
+    const rowFields = rowDisabled ? [] : (row.fields || []);
     const ungroupedFields = collectFields(rowFields);
     if (ungroupedFields.length) {
       preview.push({
@@ -187,7 +185,13 @@ export function createConditionSnapshot(rows, formValues) {
       });
     }
 
-    if (rowDisabled) return;
+    if (rowDisabled) {
+      const rowControlGroup = (row.groups || []).find((group) => group.controlsRow);
+      if (rowControlGroup) {
+        collectFields(rowControlGroup.fields.filter((field) => field.name === row.controlToggleName));
+      }
+      return;
+    }
 
     (row.groups || []).forEach((group) => {
       const fields = group.toggleName && formValues[group.toggleName] !== true

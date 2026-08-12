@@ -2,7 +2,10 @@ import { Col, Form, Row, Space } from 'antd';
 import { useContext } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { CheckboxField } from '../fields';
-import { ConditionDisabledContext } from '../model/SearchConditionContext';
+import {
+  ConditionDisabledContext,
+  RowControlToggleContext,
+} from '../model/SearchConditionContext';
 import { createToggleField } from '../model/composition';
 
 function GroupFormItem({ className, label, children }) {
@@ -23,12 +26,16 @@ function GroupFormItem({ className, label, children }) {
 function ToggleableGroup({ className, label, toggle, children }) {
   const { control } = useFormContext();
   const parentDisabled = useContext(ConditionDisabledContext);
+  const rowControlToggleName = useContext(RowControlToggleContext);
   const enabled = useWatch({ control, name: toggle.name });
+  const controlsRow = toggle.name === rowControlToggleName;
 
   return (
     <>
       <Col className="condition-group__toggle" flex="none">
-        <CheckboxField field={toggle} />
+        <ConditionDisabledContext.Provider value={controlsRow ? false : parentDisabled}>
+          <CheckboxField field={toggle} />
+        </ConditionDisabledContext.Provider>
       </Col>
       <Col className="condition-group__body" flex="auto">
         <ConditionDisabledContext.Provider value={parentDisabled || !Boolean(enabled)}>

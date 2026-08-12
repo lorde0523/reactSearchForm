@@ -12,7 +12,6 @@ describe('createRowsFromChildren', () => {
         rowKey="basic"
         label="기본 조건"
         required
-        toggle={{ name: 'useBasic', checkedText: '사용' }}
       >
         <TextField
           field={{ label: '검색어', name: 'keyword' }}
@@ -42,15 +41,8 @@ describe('createRowsFromChildren', () => {
     const rows = createRowsFromChildren(children);
 
     expect(rows[0].key).toBe('basic');
-    expect(rows[0].toggleName).toBe('useBasic');
-    expect(rows[0].fields[0]).toMatchObject({
-      defaultValue: false,
-      hideFalsyInPreview: true,
-      includeFalsy: true,
-      name: 'useBasic',
-      type: 'checkbox',
-    });
-    expect(rows[0].fields[1]).toEqual({
+    expect(rows[0]).not.toHaveProperty('controlToggleName');
+    expect(rows[0].fields[0]).toEqual({
       label: '검색어',
       name: 'keyword',
       placeholder: '입력',
@@ -78,18 +70,20 @@ describe('createRowsFromChildren', () => {
     });
   });
 
-  it('최상단 라벨이 없는 row toggle로 두 그룹을 제어할 수 있다', () => {
+  it('SearchGroup의 controlRow toggle로 라벨 없는 row의 두 그룹을 제어한다', () => {
     const children = (
-      <SearchRow
-        rowKey="customer"
-        toggle={{
-          name: 'useCustomerConditions',
-          label: '고객 조건 사용 여부',
-          text: '고객 조건 사용',
-          hideInPreview: true,
-        }}
-      >
-        <SearchGroup groupKey="customerInfo" label="고객 정보">
+      <SearchRow rowKey="customer">
+        <SearchGroup
+          groupKey="customerInfo"
+          label="고객 정보"
+          toggle={{
+            name: 'useCustomerConditions',
+            label: '고객 조건 사용 여부',
+            text: '고객 조건 사용',
+            controlRow: true,
+            hideInPreview: true,
+          }}
+        >
           <TextField name="customerName" label="고객명" />
         </SearchGroup>
         <SearchGroup groupKey="channel" label="접수 채널">
@@ -102,8 +96,11 @@ describe('createRowsFromChildren', () => {
 
     expect(rows[0].key).toBe('customer');
     expect(rows[0]).not.toHaveProperty('label');
-    expect(rows[0].toggleName).toBe('useCustomerConditions');
-    expect(rows[0].fields[0]).toMatchObject({
+    expect(rows[0].controlToggleName).toBe('useCustomerConditions');
+    expect(rows[0].fields).toEqual([]);
+    expect(rows[0].groups[0].controlsRow).toBe(true);
+    expect(rows[0].groups[0].fields[0]).toMatchObject({
+      controlRow: true,
       defaultValue: false,
       hideInPreview: true,
       name: 'useCustomerConditions',

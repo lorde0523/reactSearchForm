@@ -89,39 +89,45 @@ import {
 </SearchGroup>
 ```
 
-행 전체를 제어할 때는 `SearchRow`에 동일한 `toggle`을 전달합니다. 체크가 해제되면 그 행의 일반 필드와 모든 `SearchGroup`이 함께 비활성화됩니다.
+`SearchRow`에는 `toggle`을 두지 않습니다. 행 전체를 제어해야 하면 기준이 되는 `SearchGroup.toggle`에 `controlRow: true`를 추가합니다. 이 옵션을 생략하면 해당 그룹만 활성화·비활성화합니다.
 
 ```jsx
-<SearchRow
-  rowKey="customer"
-  label="고객 조건"
-  toggle={{
-    name: 'useCustomerConditions',
-    label: '고객 조건 사용',
-    checkedText: '사용',
-  }}
->
+<SearchRow rowKey="customer" label="고객 조건">
   <TextField name="customerName" label="고객명" />
-  <SearchGroup groupKey="channel" label="접수 채널">
+
+  <SearchGroup
+    groupKey="channel"
+    label="접수 채널"
+    toggle={{
+      name: 'useChannel',
+      label: '접수 채널 사용',
+      checkedText: '사용',
+      controlRow: true,
+    }}
+  >
     <SelectField name="channel" label="접수 채널" options={channelOptions} />
   </SearchGroup>
 </SearchRow>
 ```
 
-최상단 행 라벨이 필요하지 않은 줄은 `label`을 생략할 수 있습니다. 이때 저장 메타데이터와 React key가 안정적으로 생성되도록 `rowKey`는 반드시 지정합니다. `toggle` 체크박스는 왼쪽 영역에 표시되고, 체크 여부로 같은 행의 모든 그룹을 한 번에 활성화·비활성화합니다.
+위 예제에서는 `useChannel`이 해제되면 그룹 바깥의 `customerName`과 같은 행의 다른 그룹까지 비활성화됩니다. 행을 제어하는 체크박스는 다시 켤 수 있도록 비활성화되지 않습니다. 한 행에는 `controlRow: true`인 그룹을 하나만 둘 수 있습니다.
+
+최상단 행 라벨이 필요하지 않은 줄은 `SearchRow.label`을 생략할 수 있습니다. 이때 저장 메타데이터와 React key가 안정적으로 생성되도록 `rowKey`는 반드시 지정합니다.
 
 ```jsx
-<SearchRow
-  rowKey="customer"
-  toggle={{
-    name: 'useCustomerConditions',
-    label: '고객 조건 사용 여부',
-    text: '고객 조건 사용',
-    checkedText: '고객 조건 사용',
-    hideInPreview: true,
-  }}
->
-  <SearchGroup groupKey="customerInfo" label="고객 정보">
+<SearchRow rowKey="customer">
+  <SearchGroup
+    groupKey="customerInfo"
+    label="고객 정보"
+    toggle={{
+      name: 'useCustomerConditions',
+      label: '고객 조건 사용 여부',
+      text: '고객 조건 사용',
+      checkedText: '고객 조건 사용',
+      controlRow: true,
+      hideInPreview: true,
+    }}
+  >
     <TextField name="customerName" label="고객명" />
   </SearchGroup>
   <SearchGroup groupKey="channel" label="접수 채널">
@@ -130,7 +136,7 @@ import {
 </SearchRow>
 ```
 
-`label`은 접근성 이름이고 `text`는 화면에 표시할 체크박스 문구입니다. `defaultValue`를 생략하면 체크 해제 상태로 시작하며 두 그룹도 비활성화됩니다. `hideInPreview: true`이면 저장값에는 체크 상태를 유지하되 저장 팝업에는 체크박스 자체를 별도 행으로 표시하지 않습니다.
+`toggle.label`은 접근성 이름이고 `text`는 화면에 표시할 체크박스 문구입니다. `defaultValue`를 생략하면 체크 해제 상태로 시작하며 두 그룹도 비활성화됩니다. `hideInPreview: true`이면 저장값에는 체크 상태를 유지하되 저장 팝업에는 체크박스 자체를 표시하지 않습니다.
 
 주차·월·연도 Picker는 다음 6개를 제공합니다.
 
