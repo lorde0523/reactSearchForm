@@ -36,7 +36,7 @@ export default function SearchRow({ label, required, detail, detailOpen, toggle,
             <CheckboxField field={toggleField} />
           </span>
         )}
-        <Typography.Text strong>{label}</Typography.Text>
+        {label && <Typography.Text strong>{label}</Typography.Text>}
         {required && <span className="required-mark" aria-label="필수">*</span>}
       </Col>
       <ConditionDisabledContext.Provider value={rowDisabled}>

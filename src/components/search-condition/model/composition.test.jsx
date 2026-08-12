@@ -77,4 +77,27 @@ describe('createRowsFromChildren', () => {
       type: 'weekRange',
     });
   });
+
+  it('최상단 라벨이 없는 row는 rowKey와 그룹 라벨로 구성할 수 있다', () => {
+    const children = (
+      <SearchRow rowKey="customerUse">
+        <SearchGroup groupKey="customerUse" label="고객 조건 사용">
+          <CheckboxField
+            name="useCustomerConditions"
+            label="고객 조건 사용 여부"
+            text="사용"
+          />
+        </SearchGroup>
+      </SearchRow>
+    );
+
+    const rows = createRowsFromChildren(children);
+
+    expect(rows[0].key).toBe('customerUse');
+    expect(rows[0]).not.toHaveProperty('label');
+    expect(rows[0].groups[0]).toMatchObject({
+      key: 'customerUse',
+      label: '고객 조건 사용',
+    });
+  });
 });

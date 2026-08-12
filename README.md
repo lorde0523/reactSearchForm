@@ -105,6 +105,26 @@ import {
 </SearchRow>
 ```
 
+최상단 행 라벨이 필요하지 않은 줄은 `label`을 생략할 수 있습니다. 이때 저장 메타데이터와 React key가 안정적으로 생성되도록 `rowKey`는 반드시 지정합니다. 가운데 라벨이 필요하면 내부 `SearchGroup.label`을 사용합니다.
+
+```jsx
+<SearchRow rowKey="customerUse">
+  <SearchGroup groupKey="customerUse" label="고객 조건 사용">
+    <CheckboxField
+      name="useCustomerConditions"
+      label="고객 조건 사용 여부"
+      text="사용"
+      checkedText="고객 조건 사용"
+      defaultValue={false}
+    />
+  </SearchGroup>
+</SearchRow>
+
+<SearchRow rowKey="customer" label="고객 조건">
+  {/* 고객 조건 필드 */}
+</SearchRow>
+```
+
 주차·월·연도 Picker는 다음 6개를 제공합니다.
 
 | 컴포넌트 | Picker | 저장 value 포맷 | 화면 포맷 |

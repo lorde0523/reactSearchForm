@@ -4,14 +4,6 @@ import koKR from 'antd/locale/ko_KR';
 import { useSearchConditionShareState } from './components/search-condition';
 import SearchConditionExample from './examples/SearchConditionExample';
 
-const SHARED_FIELD_NAMES = [
-  'keyword',
-  'usePeriod',
-  'dateType',
-  'period',
-  'status',
-];
-
 const TAB_DEFAULT_VALUES = {
   reception: { dateType: 'createdAt', usePeriod: true },
   history: { dateType: 'updatedAt', usePeriod: true },
@@ -55,7 +47,6 @@ function BusinessSearchPage() {
   const conditionShare = useSearchConditionShareState({
     activeTab,
     enabled: shareEnabled,
-    fieldNames: SHARED_FIELD_NAMES,
   });
 
   const handleSearch = ({ conditionKey, values }) => {
