@@ -78,26 +78,44 @@ describe('createRowsFromChildren', () => {
     });
   });
 
-  it('최상단 라벨이 없는 row는 rowKey와 그룹 라벨로 구성할 수 있다', () => {
+  it('최상단 라벨이 없는 row toggle로 두 그룹을 제어할 수 있다', () => {
     const children = (
-      <SearchRow rowKey="customerUse">
-        <SearchGroup groupKey="customerUse" label="고객 조건 사용">
-          <CheckboxField
-            name="useCustomerConditions"
-            label="고객 조건 사용 여부"
-            text="사용"
-          />
+      <SearchRow
+        rowKey="customer"
+        toggle={{
+          name: 'useCustomerConditions',
+          label: '고객 조건 사용 여부',
+          text: '고객 조건 사용',
+          hideInPreview: true,
+        }}
+      >
+        <SearchGroup groupKey="customerInfo" label="고객 정보">
+          <TextField name="customerName" label="고객명" />
+        </SearchGroup>
+        <SearchGroup groupKey="channel" label="접수 채널">
+          <SelectField name="channel" label="접수 채널" options={[]} />
         </SearchGroup>
       </SearchRow>
     );
 
     const rows = createRowsFromChildren(children);
 
-    expect(rows[0].key).toBe('customerUse');
+    expect(rows[0].key).toBe('customer');
     expect(rows[0]).not.toHaveProperty('label');
+    expect(rows[0].toggleName).toBe('useCustomerConditions');
+    expect(rows[0].fields[0]).toMatchObject({
+      defaultValue: false,
+      hideInPreview: true,
+      name: 'useCustomerConditions',
+      text: '고객 조건 사용',
+    });
     expect(rows[0].groups[0]).toMatchObject({
-      key: 'customerUse',
-      label: '고객 조건 사용',
+      key: 'customerInfo',
+      label: '고객 정보',
+    });
+    expect(rows[0].groups[1]).toMatchObject({
+      key: 'channel',
+      label: '접수 채널',
     });
   });
 });

@@ -127,19 +127,16 @@ export default function SearchConditionExample({
         </SearchGroup>
       </SearchRow>
 
-      <SearchRow rowKey="customerUse">
-        <SearchGroup groupKey="customerUse" label="고객 조건 사용">
-          <CheckboxField
-            name="useCustomerConditions"
-            label="고객 조건 사용 여부"
-            text="사용"
-            checkedText="고객 조건 사용"
-            defaultValue={false}
-          />
-        </SearchGroup>
-      </SearchRow>
-
-      <SearchRow rowKey="customer" label="고객 조건">
+      <SearchRow
+        rowKey="customer"
+        toggle={{
+          name: 'useCustomerConditions',
+          label: '고객 조건 사용 여부',
+          text: '고객 조건 사용',
+          checkedText: '고객 조건 사용',
+          hideInPreview: true,
+        }}
+      >
         <SearchGroup groupKey="customerInfo" label="고객 정보">
           <TextField name="customerName" label="고객명" width={140} placeholder="고객명" />
           <TextField

@@ -105,25 +105,29 @@ import {
 </SearchRow>
 ```
 
-최상단 행 라벨이 필요하지 않은 줄은 `label`을 생략할 수 있습니다. 이때 저장 메타데이터와 React key가 안정적으로 생성되도록 `rowKey`는 반드시 지정합니다. 가운데 라벨이 필요하면 내부 `SearchGroup.label`을 사용합니다.
+최상단 행 라벨이 필요하지 않은 줄은 `label`을 생략할 수 있습니다. 이때 저장 메타데이터와 React key가 안정적으로 생성되도록 `rowKey`는 반드시 지정합니다. `toggle` 체크박스는 왼쪽 영역에 표시되고, 체크 여부로 같은 행의 모든 그룹을 한 번에 활성화·비활성화합니다.
 
 ```jsx
-<SearchRow rowKey="customerUse">
-  <SearchGroup groupKey="customerUse" label="고객 조건 사용">
-    <CheckboxField
-      name="useCustomerConditions"
-      label="고객 조건 사용 여부"
-      text="사용"
-      checkedText="고객 조건 사용"
-      defaultValue={false}
-    />
+<SearchRow
+  rowKey="customer"
+  toggle={{
+    name: 'useCustomerConditions',
+    label: '고객 조건 사용 여부',
+    text: '고객 조건 사용',
+    checkedText: '고객 조건 사용',
+    hideInPreview: true,
+  }}
+>
+  <SearchGroup groupKey="customerInfo" label="고객 정보">
+    <TextField name="customerName" label="고객명" />
+  </SearchGroup>
+  <SearchGroup groupKey="channel" label="접수 채널">
+    <SelectField name="channel" label="접수 채널" options={channelOptions} />
   </SearchGroup>
 </SearchRow>
-
-<SearchRow rowKey="customer" label="고객 조건">
-  {/* 고객 조건 필드 */}
-</SearchRow>
 ```
+
+`label`은 접근성 이름이고 `text`는 화면에 표시할 체크박스 문구입니다. `defaultValue`를 생략하면 체크 해제 상태로 시작하며 두 그룹도 비활성화됩니다. `hideInPreview: true`이면 저장값에는 체크 상태를 유지하되 저장 팝업에는 체크박스 자체를 별도 행으로 표시하지 않습니다.
 
 주차·월·연도 Picker는 다음 6개를 제공합니다.
 
