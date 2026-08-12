@@ -18,7 +18,7 @@ import {
   TextAreaField,
   TextField,
   useSearchConditionSync,
-} from '../components/search-condition';
+} from '../components/common/conditionForm';
 
 const statusOptions = [
   { label: '대기', value: 'waiting' },

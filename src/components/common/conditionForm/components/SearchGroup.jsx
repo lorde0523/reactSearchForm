@@ -1,7 +1,7 @@
 import { Col, Form, Row, Space } from 'antd';
 import { useContext } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { CheckboxField } from '../atoms';
+import { CheckboxField } from '../fields';
 import { ConditionDisabledContext } from '../model/SearchConditionContext';
 import { createToggleField } from '../model/composition';
 

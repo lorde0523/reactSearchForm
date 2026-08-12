@@ -1,7 +1,7 @@
 import { Children, useContext } from 'react';
 import { Col, Row, Space, Typography } from 'antd';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { CheckboxField } from '../atoms';
+import { CheckboxField } from '../fields';
 import SearchGroup from './SearchGroup';
 import {
   ConditionDisabledContext,

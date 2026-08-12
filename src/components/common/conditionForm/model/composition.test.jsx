@@ -1,8 +1,8 @@
 import React from 'react';
 import { describe, expect, it } from 'vitest';
-import SearchGroup from '../molecules/SearchGroup';
-import SearchRow from '../molecules/SearchRow';
-import { CheckboxField, PeriodPickerField, SelectField, TextField } from '../atoms';
+import SearchGroup from '../components/SearchGroup';
+import SearchRow from '../components/SearchRow';
+import { CheckboxField, PeriodPickerField, SelectField, TextField } from '../fields';
 import { createRowsFromChildren } from './composition';
 
 describe('createRowsFromChildren', () => {

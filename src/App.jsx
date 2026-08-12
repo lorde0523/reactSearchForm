@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { App as AntdApp, Col, ConfigProvider, Row, Switch, Table, Tabs, Tag, Typography } from 'antd';
 import koKR from 'antd/locale/ko_KR';
-import { useSearchConditionShareState } from './components/search-condition';
+import { useSearchConditionShareState } from './components/common/conditionForm';
 import SearchConditionExample from './examples/SearchConditionExample';
 
 const TAB_DEFAULT_VALUES = {

@@ -11,22 +11,23 @@ pnpm dev
 
 검증은 `pnpm test`, `pnpm build`로 실행합니다.
 
-## Atomic Design 구조
+## 공통 조회조건 모듈 구조
 
 조회조건 모듈은 페이지와 분리된 공통 컴포넌트이며, 내부 구조는 다음과 같습니다.
 
 ```text
-src/components/search-condition/
-├─ atoms/       # RHF Controller와 연결된 입력 필드
-├─ molecules/   # SearchGroup, SearchRow (최상위 index.js에서 직접 export)
-├─ organisms/   # SearchConditionForm (최상위 index.js에서 직접 export)
+src/components/common/conditionForm/
+├─ fields/      # RHF Controller와 연결된 입력 필드
+├─ components/  # SearchConditionForm, SearchGroup, SearchRow
+├─ hooks/       # 탭 사이 현재 조회조건 공유 훅
 ├─ model/       # 초기값, 저장 스냅샷, picker 설정, context
-└─ index.js     # 페이지에서 사용하는 공개 API
+├─ styles.css
+└─ index.js     # 모든 페이지에서 사용하는 공개 API
 ```
 
-하위 폴더별 `index.js`는 일괄적으로 만들지 않습니다. 여러 필드를 묶는 `atoms/index.js`와 외부 공개 진입점인 최상위 `index.js`만 유지하며, 컴포넌트가 한두 개인 `molecules`, `organisms`는 최상위에서 파일을 직접 export합니다.
+하위 폴더별 `index.js`는 일괄적으로 만들지 않습니다. 여러 필드를 묶는 `fields/index.js`와 조회조건 모듈의 공개 진입점인 최상위 `index.js`만 유지합니다. `components`, `hooks`는 최상위에서 각 파일을 직접 export합니다.
 
-페이지에서는 Atomic 내부 경로를 직접 참조하지 않고 공통 진입점만 import합니다.
+페이지에서는 조회조건 내부 경로를 직접 참조하지 않고 공통 진입점만 import합니다.
 
 ```jsx
 import {
@@ -35,7 +36,7 @@ import {
   SearchRow,
   SelectField,
   TextField,
-} from '../components/search-condition';
+} from '../components/common/conditionForm';
 ```
 
 ## 페이지에서 사용하기
@@ -212,7 +213,7 @@ import {
 
 특수 값은 `serialize`, `deserialize`, `formatDisplay`를 전달하면 저장, 복원, 팝업 표시에서도 같은 선언을 사용합니다. 단일 `CheckboxField`는 체크된 경우에만 표시되고, `CheckboxGroupField`는 선택된 option label만 `/`로 연결합니다.
 
-각 입력은 `atoms/` 아래 타입별 컴포넌트로 분리되어 있습니다. `ControlledField`가 react-hook-form의 `Controller`와 Ant Design `Form.Item`을 공통 처리합니다.
+각 입력은 `fields/` 아래 타입별 컴포넌트로 분리되어 있습니다. `ControlledField`가 react-hook-form의 `Controller`와 Ant Design `Form.Item`을 공통 처리합니다.
 
 ## 화면 외부에서 폼값 변경
 
