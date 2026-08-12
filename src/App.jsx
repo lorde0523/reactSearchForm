@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { App as AntdApp, Col, ConfigProvider, Row, Table, Tag, Typography } from 'antd';
+import { App as AntdApp, Button, Col, ConfigProvider, Row, Table, Tag, Typography } from 'antd';
 import koKR from 'antd/locale/ko_KR';
+import { useForm } from 'react-hook-form';
 import SearchConditionExample from './examples/SearchConditionExample';
 
 const tableColumns = [
@@ -27,6 +28,7 @@ const tableData = [
 
 function BusinessSearchPage() {
   const { message } = AntdApp.useApp();
+  const formMethods = useForm();
   const defaultValues = useMemo(() => ({ dateType: 'createdAt' }), []);
   const [savedConditions, setSavedConditions] = useState([
     { id: 'active-online', name: '진행 중인 온라인 건', values: { status: 'active', channel: 'online' } },
@@ -45,6 +47,15 @@ function BusinessSearchPage() {
     ]);
   };
 
+  const changeFormValues = () => {
+    const options = { shouldDirty: true, shouldValidate: true };
+    formMethods.setValue('usePeriod', true, options);
+    formMethods.setValue('dateType', 'updatedAt', options);
+    formMethods.setValue('status', 'active', options);
+    formMethods.setValue('useCustomerConditions', true, options);
+    formMethods.setValue('customerName', '세빛상사', options);
+  };
+
   return (
     <main className="app-shell">
       <Row className="page-heading" align="bottom" justify="space-between">
@@ -52,10 +63,14 @@ function BusinessSearchPage() {
           <Typography.Title level={3}>업무 조회</Typography.Title>
           <Typography.Text type="secondary">조건을 입력한 다음 조회해 주세요.</Typography.Text>
         </Col>
+        <Col>
+          <Button onClick={changeFormValues}>외부에서 폼 값 변경</Button>
+        </Col>
       </Row>
 
       <SearchConditionExample
         defaultValues={defaultValues}
+        formMethods={formMethods}
         savedConditions={savedConditions}
         onSaveCondition={handleSaveCondition}
         onSearch={handleSearch}

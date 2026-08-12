@@ -54,6 +54,7 @@ const regionOptions = [
 
 export default function SearchConditionExample({
   defaultValues,
+  formMethods,
   savedConditions,
   onSaveCondition,
   onSearch,
@@ -62,6 +63,7 @@ export default function SearchConditionExample({
     <SearchConditionForm
       conditionKey="business-search"
       defaultValues={defaultValues}
+      formMethods={formMethods}
       savedConditions={savedConditions}
       onSaveCondition={onSaveCondition}
       onSearch={onSearch}
@@ -82,7 +84,6 @@ export default function SearchConditionExample({
             name: 'usePeriod',
             label: '조회 기간 사용',
             checkedText: '사용',
-            defaultValue: true,
           }}
         >
           <SelectField
@@ -115,7 +116,15 @@ export default function SearchConditionExample({
         </SearchGroup>
       </SearchRow>
 
-      <SearchRow rowKey="customer" label="고객 조건">
+      <SearchRow
+        rowKey="customer"
+        label="고객 조건"
+        toggle={{
+          name: 'useCustomerConditions',
+          label: '고객 조건 사용',
+          checkedText: '사용',
+        }}
+      >
         <SearchGroup groupKey="customerInfo" label="고객 정보">
           <TextField name="customerName" label="고객명" width={140} placeholder="고객명" />
           <TextField

@@ -20,15 +20,15 @@ function createFieldSchema(props, type) {
   );
 }
 
-export function createGroupToggleField(toggle, groupLabel) {
+export function createToggleField(toggle, label) {
   if (!toggle) return undefined;
-  if (!toggle.name) throw new Error('SearchGroup toggle에는 name이 필요합니다.');
+  if (!toggle.name) throw new Error('SearchGroup 또는 SearchRow의 toggle에는 name이 필요합니다.');
 
   return {
     defaultValue: false,
     hideFalsyInPreview: true,
     includeFalsy: true,
-    label: `${groupLabel} 사용`,
+    label: `${label} 사용`,
     ...toggle,
     type: 'checkbox',
   };
@@ -50,12 +50,14 @@ export function createRowsFromChildren(children) {
 
       const kind = node.type.conditionKind;
       if (kind === 'row') {
-        const { children: rowChildren, ...rowProps } = node.props;
+        const { children: rowChildren, toggle, ...rowProps } = node.props;
+        const toggleField = createToggleField(toggle, rowProps.label);
         const row = {
           ...rowProps,
           key: rowProps.rowKey || rowProps.label,
-          fields: [],
+          fields: toggleField ? [createFieldSchema(toggleField, 'checkbox')] : [],
           groups: [],
+          toggleName: toggleField?.name,
         };
         rows.push(row);
         visit(rowChildren, row, null);
@@ -70,7 +72,7 @@ export function createRowsFromChildren(children) {
           toggle,
           ...groupProps
         } = node.props;
-        const toggleField = createGroupToggleField(toggle, groupProps.label);
+        const toggleField = createToggleField(toggle, groupProps.label);
         const group = {
           ...groupProps,
           key: groupProps.groupKey || groupProps.label,

@@ -1,8 +1,9 @@
 import { Col, Form, Row, Space } from 'antd';
+import { useContext } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { CheckboxField } from '../atoms';
-import { GroupDisabledContext } from '../model/SearchConditionContext';
-import { createGroupToggleField } from '../model/composition';
+import { ConditionDisabledContext } from '../model/SearchConditionContext';
+import { createToggleField } from '../model/composition';
 
 function GroupFormItem({ className, label, children }) {
   return (
@@ -21,6 +22,7 @@ function GroupFormItem({ className, label, children }) {
 
 function ToggleableGroup({ className, label, toggle, children }) {
   const { control } = useFormContext();
+  const parentDisabled = useContext(ConditionDisabledContext);
   const enabled = useWatch({ control, name: toggle.name });
 
   return (
@@ -29,16 +31,16 @@ function ToggleableGroup({ className, label, toggle, children }) {
         <CheckboxField field={toggle} />
       </Col>
       <Col className="condition-group__body" flex="auto">
-        <GroupDisabledContext.Provider value={!Boolean(enabled)}>
+        <ConditionDisabledContext.Provider value={parentDisabled || !Boolean(enabled)}>
           <GroupFormItem className={className} label={label}>{children}</GroupFormItem>
-        </GroupDisabledContext.Provider>
+        </ConditionDisabledContext.Provider>
       </Col>
     </>
   );
 }
 
 export default function SearchGroup({ label, className, groupClassName, toggle, children }) {
-  const toggleField = createGroupToggleField(toggle, label);
+  const toggleField = createToggleField(toggle, label);
 
   return (
     <Col

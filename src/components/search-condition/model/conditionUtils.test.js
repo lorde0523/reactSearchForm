@@ -323,4 +323,55 @@ describe('conditionUtils', () => {
       { usePeriod: true },
     ).usePeriod).toBe(false);
   });
+
+  it('row toggle이 꺼지면 해당 줄의 일반 필드와 그룹을 모두 제외한다', () => {
+    const rowToggleRows = [
+      {
+        key: 'customer',
+        label: '고객 조건',
+        toggleName: 'useCustomerConditions',
+        fields: [
+          {
+            name: 'useCustomerConditions',
+            label: '고객 조건 사용',
+            type: 'checkbox',
+            includeFalsy: true,
+            hideFalsyInPreview: true,
+            defaultValue: false,
+            checkedText: '사용',
+          },
+          { name: 'keyword', label: '검색어', type: 'text' },
+        ],
+        groups: [
+          {
+            key: 'customerInfo',
+            label: '고객 정보',
+            fields: [{ name: 'customerName', label: '고객명', type: 'text' }],
+          },
+        ],
+      },
+    ];
+
+    expect(createConditionSnapshot(rowToggleRows, {
+      useCustomerConditions: false,
+      keyword: '숨김 검색어',
+      customerName: '숨김 고객명',
+    })).toEqual({
+      values: { useCustomerConditions: false },
+      preview: [],
+    });
+
+    const enabled = createConditionSnapshot(rowToggleRows, {
+      useCustomerConditions: true,
+      keyword: '검색어',
+      customerName: '세빛상사',
+    });
+
+    expect(enabled.values).toEqual({
+      useCustomerConditions: true,
+      keyword: '검색어',
+      customerName: '세빛상사',
+    });
+    expect(enabled.preview.map(({ label }) => label)).toEqual(['고객 조건', '고객 정보']);
+  });
 });

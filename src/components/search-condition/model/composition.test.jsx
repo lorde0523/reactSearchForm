@@ -8,7 +8,12 @@ import { createRowsFromChildren } from './composition';
 describe('createRowsFromChildren', () => {
   it('페이지가 전달한 JSX를 저장 메타데이터 구조로 변환한다', () => {
     const children = (
-      <SearchRow rowKey="basic" label="기본 조건" required>
+      <SearchRow
+        rowKey="basic"
+        label="기본 조건"
+        required
+        toggle={{ name: 'useBasic', checkedText: '사용' }}
+      >
         <TextField
           field={{ label: '검색어', name: 'keyword' }}
           placeholder="입력"
@@ -37,7 +42,15 @@ describe('createRowsFromChildren', () => {
     const rows = createRowsFromChildren(children);
 
     expect(rows[0].key).toBe('basic');
-    expect(rows[0].fields[0]).toEqual({
+    expect(rows[0].toggleName).toBe('useBasic');
+    expect(rows[0].fields[0]).toMatchObject({
+      defaultValue: false,
+      hideFalsyInPreview: true,
+      includeFalsy: true,
+      name: 'useBasic',
+      type: 'checkbox',
+    });
+    expect(rows[0].fields[1]).toEqual({
       label: '검색어',
       name: 'keyword',
       placeholder: '입력',

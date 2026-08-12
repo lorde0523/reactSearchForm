@@ -2,7 +2,7 @@ import { Form } from 'antd';
 import { useContext, useEffect, useRef } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { deserializeFieldValue } from '../model/conditionUtils';
-import { GroupDisabledContext } from '../model/SearchConditionContext';
+import { ConditionDisabledContext } from '../model/SearchConditionContext';
 
 const EMPTY_DEPENDENCIES = [];
 
@@ -27,7 +27,7 @@ export function resolveFieldDisabled(field, form, dependencyValues, groupDisable
 
 export default function ControlledField({ field, renderInput }) {
   const methods = useFormContext();
-  const groupDisabled = useContext(GroupDisabledContext);
+  const contextDisabled = useContext(ConditionDisabledContext);
   const dependencies = field.dependencies || EMPTY_DEPENDENCIES;
   const dependencyValues = useWatch({
     control: methods.control,
@@ -35,7 +35,7 @@ export default function ControlledField({ field, renderInput }) {
     name: dependencies,
   });
   const previousInitialValue = useRef({ name: field.name, value: field.initialValue });
-  const disabled = resolveFieldDisabled(field, methods, dependencyValues, groupDisabled);
+  const disabled = resolveFieldDisabled(field, methods, dependencyValues, contextDisabled);
 
   useEffect(() => {
     const previous = previousInitialValue.current;

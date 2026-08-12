@@ -1,11 +1,25 @@
 import { Children, useContext } from 'react';
 import { Col, Row, Space, Typography } from 'antd';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { CheckboxField } from '../atoms';
 import SearchGroup from './SearchGroup';
-import { DetailVisibilityContext } from '../model/SearchConditionContext';
+import {
+  ConditionDisabledContext,
+  DetailVisibilityContext,
+} from '../model/SearchConditionContext';
+import { createToggleField } from '../model/composition';
 
-export default function SearchRow({ label, required, detail, detailOpen, children }) {
+export default function SearchRow({ label, required, detail, detailOpen, toggle, children }) {
+  const { control } = useFormContext();
   const contextDetailOpen = useContext(DetailVisibilityContext);
   const isDetailOpen = detailOpen ?? contextDetailOpen;
+  const toggleField = createToggleField(toggle, label);
+  const enabled = useWatch({
+    control,
+    disabled: !toggleField,
+    name: toggleField?.name,
+  });
+  const rowDisabled = Boolean(toggleField) && !Boolean(enabled);
   const childItems = Children.toArray(children);
   const groups = childItems.filter((child) => child.type === SearchGroup);
   const fields = childItems.filter((child) => child.type !== SearchGroup);
@@ -17,17 +31,24 @@ export default function SearchRow({ label, required, detail, detailOpen, childre
       wrap={false}
     >
       <Col className="category-name condition-row__label" flex="112px">
+        {toggleField && (
+          <span className="condition-row__toggle">
+            <CheckboxField field={toggleField} />
+          </span>
+        )}
         <Typography.Text strong>{label}</Typography.Text>
         {required && <span className="required-mark" aria-label="필수">*</span>}
       </Col>
-      <Row className="category-list condition-row__groups" align="middle" wrap>
-        {fields.length > 0 && (
-          <Col className="category-item condition-group condition-group--ungrouped" flex="none">
-            <Space align="start" size={8} wrap>{fields}</Space>
-          </Col>
-        )}
-        {groups}
-      </Row>
+      <ConditionDisabledContext.Provider value={rowDisabled}>
+        <Row className="category-list condition-row__groups" align="middle" wrap>
+          {fields.length > 0 && (
+            <Col className="category-item condition-group condition-group--ungrouped" flex="none">
+              <Space align="start" size={8} wrap>{fields}</Space>
+            </Col>
+          )}
+          {groups}
+        </Row>
+      </ConditionDisabledContext.Provider>
     </Row>
   );
 }

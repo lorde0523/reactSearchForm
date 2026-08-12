@@ -30,6 +30,8 @@
   white-space: nowrap;
 }
 
+.condition-row__toggle { display: inline-flex; margin-right: 8px; }
+.condition-row__toggle .condition-field { margin: 0; }
 .required-mark { margin-left: 4px; color: #ff4d4f; }
 .condition-row__groups { display: flex; min-width: 0; flex: 1; align-items: flex-start; flex-wrap: wrap; gap: 8px 28px; padding: 7px 0; }
 .condition-group { min-width: 0; }

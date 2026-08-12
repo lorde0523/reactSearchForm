@@ -64,7 +64,7 @@ import {
 
 `SearchGroup`의 `label`과 `className`은 내부 `Form.Item`에 적용됩니다. 그룹 바깥쪽 `Col`에 클래스가 필요하면 `groupClassName`을 사용합니다.
 
-그룹 앞의 활성화 체크박스는 `toggle`로 설정합니다. 체크를 해제하면 자식 필드가 자동으로 비활성화되고 조회·저장 값에서도 제외됩니다. 각 자식 필드에 같은 `dependencies`와 `disabled`를 반복할 필요가 없습니다.
+그룹 앞의 활성화 체크박스는 `toggle`로 설정합니다. `defaultValue`를 생략하면 기본값은 `false`이므로 처음에는 체크가 해제되고 자식 필드도 비활성화됩니다. 체크를 해제하면 자식 필드는 조회·저장 값에서도 제외됩니다. 각 자식 필드에 같은 `dependencies`와 `disabled`를 반복할 필요가 없습니다.
 
 ```jsx
 <SearchGroup
@@ -76,7 +76,6 @@ import {
     name: 'usePeriod',
     label: '조회 기간 사용',
     checkedText: '사용',
-    defaultValue: true,
     onChange: (checked, { form }) => {
       console.log(checked, form.getValues());
     },
@@ -85,6 +84,25 @@ import {
   <SelectField name="dateType" label="날짜 기준" options={dateTypeOptions} />
   <DateRangeField name="period" label="조회 기간" />
 </SearchGroup>
+```
+
+행 전체를 제어할 때는 `SearchRow`에 동일한 `toggle`을 전달합니다. 체크가 해제되면 그 행의 일반 필드와 모든 `SearchGroup`이 함께 비활성화됩니다.
+
+```jsx
+<SearchRow
+  rowKey="customer"
+  label="고객 조건"
+  toggle={{
+    name: 'useCustomerConditions',
+    label: '고객 조건 사용',
+    checkedText: '사용',
+  }}
+>
+  <TextField name="customerName" label="고객명" />
+  <SearchGroup groupKey="channel" label="접수 채널">
+    <SelectField name="channel" label="접수 채널" options={channelOptions} />
+  </SearchGroup>
+</SearchRow>
 ```
 
 주차·월·연도 Picker는 다음 6개를 제공합니다.
@@ -168,7 +186,33 @@ import {
 
 특수 값은 `serialize`, `deserialize`, `formatDisplay`를 전달하면 저장, 복원, 팝업 표시에서도 같은 선언을 사용합니다. 단일 `CheckboxField`는 체크된 경우에만 표시되고, `CheckboxGroupField`는 선택된 option label만 `/`로 연결합니다.
 
-각 입력은 `fields/` 아래 타입별 컴포넌트로 분리되어 있습니다. `ControlledField`가 react-hook-form의 `Controller`와 Ant Design `Form.Item`을 공통 처리합니다.
+각 입력은 `atoms/` 아래 타입별 컴포넌트로 분리되어 있습니다. `ControlledField`가 react-hook-form의 `Controller`와 Ant Design `Form.Item`을 공통 처리합니다.
+
+## 화면 외부에서 폼값 변경
+
+페이지에서 폼값을 직접 읽거나 변경해야 하면 부모에서 `useForm()`을 만들고 `formMethods`로 전달합니다. `formMethods`를 생략하면 `SearchConditionForm`이 내부 폼을 생성하므로 기존 사용법도 그대로 동작합니다.
+
+```jsx
+const formMethods = useForm();
+
+<Button
+  onClick={() => {
+    formMethods.setValue('usePeriod', true, { shouldDirty: true });
+    formMethods.setValue('dateType', 'updatedAt', {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }}
+>
+  외부에서 폼 값 변경
+</Button>
+
+<SearchConditionForm formMethods={formMethods}>
+  {/* 조회조건 */}
+</SearchConditionForm>
+```
+
+현재 전체값은 `formMethods.getValues()`, 특정값 구독은 `useWatch({ control: formMethods.control, name: 'status' })`, 전체 초기화는 `formMethods.reset(values)`를 사용합니다.
 
 ## 필드별 onChange 추가 동작
 

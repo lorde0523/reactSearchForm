@@ -56,6 +56,7 @@ function PreviewTable({ preview }) {
 export default function SearchConditionForm({
   conditionKey,
   defaultValues = EMPTY_VALUES,
+  formMethods,
   savedConditions = EMPTY_CONDITIONS,
   onSearch,
   onSaveCondition,
@@ -64,19 +65,22 @@ export default function SearchConditionForm({
   const { message } = AntdApp.useApp();
   const rows = useMemo(() => createRowsFromChildren(children), [children]);
   const initialValues = useMemo(() => buildDefaultValues(rows, defaultValues), [rows, defaultValues]);
-  const methods = useForm({ defaultValues: initialValues, mode: 'onSubmit' });
+  const internalMethods = useForm({ defaultValues: initialValues, mode: 'onSubmit' });
+  const methods = formMethods || internalMethods;
   const [detailOpen, setDetailOpen] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [conditionName, setConditionName] = useState('');
   const [selectedConditionId, setSelectedConditionId] = useState();
   const [snapshot, setSnapshot] = useState({ values: {}, preview: [] });
   const [saving, setSaving] = useState(false);
-  const previousDefaultValues = useRef(defaultValues);
+  const synchronizedForm = useRef({ defaultValues: undefined, methods: undefined });
   const hasDetail = rows.some((row) => row.detail);
 
   useEffect(() => {
-    if (previousDefaultValues.current === defaultValues) return;
-    previousDefaultValues.current = defaultValues;
+    const previous = synchronizedForm.current;
+    if (previous.methods === methods && previous.defaultValues === defaultValues) return;
+
+    synchronizedForm.current = { defaultValues, methods };
     methods.reset(initialValues);
     setSelectedConditionId(undefined);
   }, [defaultValues, initialValues, methods]);

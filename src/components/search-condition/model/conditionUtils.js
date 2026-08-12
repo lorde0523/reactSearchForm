@@ -174,7 +174,11 @@ export function createConditionSnapshot(rows, formValues) {
   };
 
   rows.forEach((row) => {
-    const ungroupedFields = collectFields(row.fields || []);
+    const rowDisabled = row.toggleName && formValues[row.toggleName] !== true;
+    const rowFields = rowDisabled
+      ? (row.fields || []).filter((field) => field.name === row.toggleName)
+      : (row.fields || []);
+    const ungroupedFields = collectFields(rowFields);
     if (ungroupedFields.length) {
       preview.push({
         key: `${row.key}-ungrouped`,
@@ -182,6 +186,8 @@ export function createConditionSnapshot(rows, formValues) {
         fields: ungroupedFields,
       });
     }
+
+    if (rowDisabled) return;
 
     (row.groups || []).forEach((group) => {
       const fields = group.toggleName && formValues[group.toggleName] !== true
