@@ -49,6 +49,25 @@ const rows = [
 ];
 
 describe('conditionUtils', () => {
+  it('stores custom multi-select objects and uses their labels in the preview', () => {
+    const customRows = [{
+      key: 'codes',
+      label: 'Code conditions',
+      fields: [{ name: 'sharedCodes', label: 'Shared codes', type: 'custom' }],
+      groups: [],
+    }];
+    const selected = [
+      { disabled: false, key: 'A', label: 'Active', title: 'Active', value: 'active' },
+      { disabled: false, key: 'B', label: 'Done', title: 'Done', value: 'done' },
+    ];
+
+    const snapshot = createConditionSnapshot(customRows, { sharedCodes: selected });
+
+    expect(snapshot.values.sharedCodes).toEqual(selected);
+    expect(snapshot.preview[0].fields[0].value).toBe('Active / Done');
+    expect(hydrateSavedValues(customRows, snapshot.values).sharedCodes).toEqual(selected);
+  });
+
   it('입력된 값만 직렬화하고 라벨 계층의 미리보기를 만든다', () => {
     const snapshot = createConditionSnapshot(rows, {
       keyword: '테스트',

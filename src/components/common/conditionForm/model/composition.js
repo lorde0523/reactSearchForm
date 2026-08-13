@@ -1,15 +1,20 @@
 import { Children, isValidElement } from 'react';
 
 const RUNTIME_FIELD_PROPS = new Set([
+  'changeEventName',
   'className',
+  'component',
   'dependencies',
   'disabled',
+  'emptyValue',
   'formItemClassName',
   'formItemStyle',
+  'getValueFromChange',
   'onChange',
   'render',
   'rules',
   'style',
+  'valuePropName',
   'width',
 ]);
 

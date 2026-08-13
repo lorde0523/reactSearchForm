@@ -533,3 +533,63 @@ function CustomerFields({ serverCustomer }) {
 ```js
 [{ id: 'condition-id', name: '저장 이름', values: { status: 'active' } }]
 ```
+## API 기반 커스텀 멀티 셀렉트 연결
+
+`CustomField`에 `component`를 지정하면 조회조건 관리에 필요한 props를 제외한 나머지 props가 커스텀 컴포넌트로 그대로 전달됩니다. 따라서 `api`, `params`, `activeTabKey` 등 `ApiSharedCodeSelect`가 제공하는 API를 최상위 props로 작성하면 됩니다.
+
+```jsx
+import ApiSharedCodeSelect from '@/components/ApiSharedCodeSelect';
+import { CustomField } from '@/components/common/conditionForm';
+
+<CustomField
+  component={ApiSharedCodeSelect}
+  name="sharedCodes"
+  label="공통 코드"
+  defaultValue={[]}
+  api={getSharedCodes}
+  params={{ groupCode: 'STATUS' }}
+  activeTabKey={activeTabKey}
+  mode="multiple"
+  allowClear
+  dependencies={['activeTabKey']}
+  disabled={({ values }) => !values.activeTabKey}
+  rules={{ required: '공통 코드를 선택해 주세요.' }}
+  onChange={(selectedItems, { form }) => {
+    console.log(selectedItems);
+    console.log(form.getValues());
+  }}
+/>
+```
+
+커스텀 컴포넌트가 아래 제어형 인터페이스를 지원하면 추가 설정은 필요 없습니다.
+
+```jsx
+function ApiSharedCodeSelect({ value, onChange, disabled, ...apiProps }) {
+  // onChange([{ disabled, key, label, title, value }, ...])
+}
+```
+
+선택 결과인 객체 배열은 RHF 값과 조회조건 저장 데이터에 그대로 보관됩니다. 저장 팝업에는 각 객체의 `label`이 ` / `로 구분되어 표시되므로 저장 후에도 같은 객체 배열로 복원할 수 있습니다. 조회 API에 `value`만 필요하면 저장 데이터를 바꾸지 말고 조회 요청을 만들 때 변환하는 편이 안전합니다.
+
+```jsx
+const handleSearch = ({ values }) => {
+  const request = {
+    ...values,
+    sharedCodes: values.sharedCodes?.map((item) => item.value),
+  };
+
+  search(request);
+};
+```
+
+컴포넌트의 값/이벤트 이름이나 이벤트 반환 형태가 다르면 다음 옵션으로 맞출 수 있습니다.
+
+```jsx
+<CustomField
+  component={ApiSharedCodeSelect}
+  name="sharedCodes"
+  valuePropName="selectedItems"
+  changeEventName="onSelectionChange"
+  getValueFromChange={(event) => event.selectedItems}
+/>
+```

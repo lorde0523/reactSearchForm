@@ -117,7 +117,15 @@ function formatFieldValue(value, field) {
   if (field.type === 'switch') return value
     ? field.checkedText || '사용'
     : field.uncheckedText || '사용 안 함';
-  if (Array.isArray(value)) return value.join(', ');
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (!item || typeof item !== 'object') return item;
+        return item.label ?? item.title ?? item.value ?? item.key ?? '';
+      })
+      .filter((item) => item !== undefined && item !== null && item !== '')
+      .join(' / ');
+  }
   return String(value);
 }
 
