@@ -126,6 +126,9 @@ function formatFieldValue(value, field) {
       .filter((item) => item !== undefined && item !== null && item !== '')
       .join(' / ');
   }
+  if (value && typeof value === 'object') {
+    return String(value.label ?? value.title ?? value.value ?? value.key ?? '');
+  }
   return String(value);
 }
 

@@ -68,6 +68,27 @@ describe('conditionUtils', () => {
     expect(hydrateSavedValues(customRows, snapshot.values).sharedCodes).toEqual(selected);
   });
 
+  it('커스텀 필드의 단일 선택 객체는 저장 모달에 label만 표시한다', () => {
+    const customRows = [{
+      key: 'code',
+      label: '코드 조건',
+      fields: [{ name: 'sharedCode', label: '공통 코드', type: 'custom' }],
+      groups: [],
+    }];
+    const selected = {
+      disabled: false,
+      key: 'A',
+      label: '진행 중',
+      title: '진행 중',
+      value: 'active',
+    };
+
+    const snapshot = createConditionSnapshot(customRows, { sharedCode: selected });
+
+    expect(snapshot.values.sharedCode).toEqual(selected);
+    expect(snapshot.preview[0].fields[0].value).toBe('진행 중');
+  });
+
   it('입력된 값만 직렬화하고 라벨 계층의 미리보기를 만든다', () => {
     const snapshot = createConditionSnapshot(rows, {
       keyword: '테스트',
