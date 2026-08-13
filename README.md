@@ -537,6 +537,119 @@ function CustomerFields({ serverCustomer }) {
 
 `CustomField`에 `component`를 지정하면 조회조건 관리에 필요한 props를 제외한 나머지 props가 커스텀 컴포넌트로 그대로 전달됩니다. 따라서 `api`, `params`, `activeTabKey` 등 `ApiSharedCodeSelect`가 제공하는 API를 최상위 props로 작성하면 됩니다.
 
+### RHF 값으로 기존 `searchForm` 객체 만들기
+
+기존 컴포넌트가 `searchForm.techCd`처럼 값을 참조한다면 `useForm()`의 메서드 객체를 직접 보내지 않고 `useWatch()` 결과를 `searchForm`으로 전달합니다.
+
+```jsx
+import { useForm, useWatch } from 'react-hook-form';
+
+function useSearchFormValues(formMethods) {
+  return useWatch({
+    control: formMethods.control,
+  }) ?? {};
+}
+```
+
+페이지에서 다음처럼 사용합니다.
+
+```jsx
+function TechSearchPage() {
+  const formMethods = useForm({
+    defaultValues: {
+      useTechCondition: false,
+      techCd: undefined,
+      detailTechCd: [],
+    },
+  });
+  const searchForm = useSearchFormValues(formMethods);
+
+  return (
+    <SearchConditionForm formMethods={formMethods}>
+      <SearchRow rowKey="tech" label="기술 조건">
+        <CheckboxField
+          name="useTechCondition"
+          text="기술 조건 사용"
+          defaultValue={false}
+        />
+        <SelectField
+          name="techCd"
+          label="기술 코드"
+          options={techOptions}
+        />
+        <CustomField
+          component={ApiSharedCodeSelect}
+          name="detailTechCd"
+          label="상세 기술 코드"
+          defaultValue={[]}
+          api={getSharedCodes}
+          params={{ techCd: searchForm.techCd }}
+          disabled={!searchForm.useTechCondition || !searchForm.techCd}
+        />
+      </SearchRow>
+    </SearchConditionForm>
+  );
+}
+```
+
+`useWatch()`가 폼 변경을 구독하므로 `techCd`가 바뀌면 `searchForm.techCd`와 `params`도 다시 계산됩니다. 이 경우 `params` 갱신을 위한 별도의 `dependencies`는 필요하지 않습니다.
+
+각 필드에는 필요한 파라미터만 명시적으로 추가하면 됩니다.
+
+```jsx
+// 첫 번째 필드: params 없음
+<CustomField
+  component={ApiSharedCodeSelect}
+  name="techCd"
+  api={getTechCodes}
+/>
+
+// 두 번째 필드: 이전 값 1개
+<CustomField
+  component={ApiSharedCodeSelect}
+  name="detailTechCd"
+  api={getDetailTechCodes}
+  params={{ techCd: searchForm.techCd }}
+/>
+
+// 다음 필드: 필요한 이전 값만 추가
+<CustomField
+  component={ApiSharedCodeSelect}
+  name="productCd"
+  api={getProductCodes}
+  params={{
+    techCd: searchForm.techCd,
+    detailTechCd: searchForm.detailTechCd,
+  }}
+/>
+```
+
+필드 값이 `{ label, value }` 객체나 멀티 셀렉트 객체 배열이라면 API에 필요한 값만 꺼냅니다.
+
+```jsx
+params={{
+  techCd: searchForm.techCd?.value,
+  detailTechCds: searchForm.detailTechCd?.map((item) => item.value) ?? [],
+}}
+```
+
+`ApiSharedCodeSelect`가 `params` 객체의 참조가 바뀔 때마다 재조회한다면 필요한 경우에만 `useMemo`로 고정합니다.
+
+```jsx
+const detailTechParams = useMemo(() => ({
+  techCd: searchForm.techCd?.value ?? searchForm.techCd,
+}), [searchForm.techCd]);
+
+<CustomField
+  component={ApiSharedCodeSelect}
+  name="detailTechCd"
+  api={getDetailTechCodes}
+  params={detailTechParams}
+/>
+```
+
+`formMethods.getValues('techCd')`는 호출 시점의 값만 읽고 변경을 구독하지 않으므로 반응형 `params`를 만들 때는 사용하지 않습니다.
+
 ```jsx
 import ApiSharedCodeSelect from '@/components/ApiSharedCodeSelect';
 import { CustomField } from '@/components/common/conditionForm';
