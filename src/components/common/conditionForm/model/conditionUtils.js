@@ -210,7 +210,7 @@ export function createConditionSnapshot(rows, formValues) {
       if (previewFields.length) {
         preview.push({
           key: `${row.key}-${group.key}`,
-          label: group.label,
+          label: group.label || row.label,
           fields: previewFields,
         });
       }

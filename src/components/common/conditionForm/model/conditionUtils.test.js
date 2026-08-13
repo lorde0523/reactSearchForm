@@ -395,4 +395,34 @@ describe('conditionUtils', () => {
     });
     expect(enabled.preview.map(({ label }) => label)).toEqual(['고객 조건', '고객 정보']);
   });
+
+  it('SearchGroup 라벨이 없으면 저장 모달에 상위 SearchRow 라벨을 사용한다', () => {
+    const rowsWithoutGroupLabel = [
+      {
+        key: 'technology',
+        label: '기술 조건',
+        fields: [],
+        groups: [
+          {
+            key: 'technologyCodes',
+            fields: [
+              { name: 'techCd', label: '기술 코드', type: 'text' },
+              { name: 'detailTechCd', label: '상세 기술 코드', type: 'text' },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const snapshot = createConditionSnapshot(rowsWithoutGroupLabel, {
+      techCd: 'TECH01',
+      detailTechCd: 'DETAIL01',
+    });
+
+    expect(snapshot.preview[0].label).toBe('기술 조건');
+    expect(snapshot.preview[0].fields.map(({ value }) => value)).toEqual([
+      'TECH01',
+      'DETAIL01',
+    ]);
+  });
 });
