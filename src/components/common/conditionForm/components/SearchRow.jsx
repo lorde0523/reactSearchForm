@@ -5,7 +5,6 @@ import SearchGroup from './SearchGroup';
 import {
   ConditionDisabledContext,
   DetailVisibilityContext,
-  RowControlToggleContext,
 } from '../model/SearchConditionContext';
 
 export default function SearchRow({ label, required, detail, detailOpen, children }) {
@@ -39,18 +38,16 @@ export default function SearchRow({ label, required, detail, detailOpen, childre
         {label && <Typography.Text strong>{label}</Typography.Text>}
         {required && <span className="required-mark" aria-label="필수">*</span>}
       </Col>
-      <RowControlToggleContext.Provider value={rowControlToggleName}>
-        <ConditionDisabledContext.Provider value={rowDisabled}>
-          <Row className="category-list condition-row__groups" align="middle" wrap>
-            {fields.length > 0 && (
-              <Col className="category-item condition-group condition-group--ungrouped" flex="none">
-                <Space align="start" size={8} wrap>{fields}</Space>
-              </Col>
-            )}
-            {groups}
-          </Row>
-        </ConditionDisabledContext.Provider>
-      </RowControlToggleContext.Provider>
+      <ConditionDisabledContext.Provider value={rowDisabled}>
+        <Row className="category-list condition-row__groups" align="middle" wrap>
+          {fields.length > 0 && (
+            <Col className="category-item condition-group condition-group--ungrouped" flex="none">
+              <Space align="start" size={8} wrap>{fields}</Space>
+            </Col>
+          )}
+          {groups}
+        </Row>
+      </ConditionDisabledContext.Provider>
     </Row>
   );
 }
