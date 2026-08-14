@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { App as AntdApp } from 'antd';
 import { describe, expect, it } from 'vitest';
 import { TextField } from '../fields';
-import SearchConditionForm from './SearchConditionForm';
+import SearchConditionForm, { PreviewTable } from './SearchConditionForm';
 import SearchGroup from './SearchGroup';
 import SearchRow from './SearchRow';
 
@@ -37,5 +37,33 @@ describe('SearchGroup row control toggle', () => {
     expect(checkbox).toBeDefined();
     expect(checkbox).not.toContain('disabled');
     expect(textInput).toContain('disabled');
+  });
+});
+
+describe('PreviewTable', () => {
+  it('커스텀 멀티 셀렉트는 5개까지만 표시하고 더보기 버튼을 제공한다', () => {
+    const html = renderToStaticMarkup(
+      <PreviewTable
+        preview={[
+          {
+            key: 'codes',
+            label: '기술 조건',
+            fields: [
+              {
+                name: 'codes',
+                label: '기술 코드',
+                type: 'custom',
+                value: '1 / 2 / 3 / 4 / 5 / 6',
+                previewItems: ['1', '2', '3', '4', '5', '6'],
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    expect(html).toContain('1 / 2 / 3 / 4 / 5');
+    expect(html).not.toContain('1 / 2 / 3 / 4 / 5 / 6');
+    expect(html).toContain('더보기');
   });
 });

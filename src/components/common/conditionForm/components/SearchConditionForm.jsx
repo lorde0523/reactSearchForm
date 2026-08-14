@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import {
   App as AntdApp,
   Button,
@@ -23,7 +23,55 @@ import {
 const EMPTY_VALUES = {};
 const EMPTY_CONDITIONS = [];
 
-function PreviewTable({ preview }) {
+const COLLAPSED_ITEM_COUNT = 5;
+
+function PreviewFieldValue({ field }) {
+  const [expanded, setExpanded] = useState(false);
+  const items = field.previewItems;
+
+  if (!items?.length) return field.value;
+
+  const hasMore = items.length > COLLAPSED_ITEM_COUNT;
+  const visibleItems = expanded ? items : items.slice(0, COLLAPSED_ITEM_COUNT);
+
+  return (
+    <span className="save-preview__multi-value">
+      <span>{visibleItems.join(' / ')}</span>
+      {hasMore && (
+        <Button
+          className="save-preview__more"
+          size="small"
+          type="link"
+          onClick={() => setExpanded((current) => !current)}
+        >
+          {expanded ? '접기' : '더보기'}
+        </Button>
+      )}
+    </span>
+  );
+}
+
+function PreviewLine({ fields }) {
+  return (
+    <div className="save-preview__line">
+      {fields.map((field, index) => {
+        const valueOnly = field.type === 'checkbox' || fields.length === 1;
+
+        return (
+          <Fragment key={field.name}>
+            {index > 0 && <span> / </span>}
+            <span>
+              {!valueOnly && `${field.label}: `}
+              <PreviewFieldValue field={field} />
+            </span>
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+export function PreviewTable({ preview }) {
   if (!preview.length) {
     return <div className="save-preview__empty">입력된 조회조건이 없습니다.</div>;
   }
@@ -33,10 +81,8 @@ function PreviewTable({ preview }) {
     {
       title: '조회 값',
       key: 'value',
-      render: (_, row) => row.fields.map((field) => {
-        const valueOnly = field.type === 'checkbox' || row.fields.length === 1;
-        return valueOnly ? field.value : `${field.label}: ${field.value}`;
-      }).join(' / '),
+      render: (_, row) => (row.lines || [{ key: row.key, fields: row.fields }])
+        .map((line) => <PreviewLine key={line.key} fields={line.fields} />),
     },
   ];
 

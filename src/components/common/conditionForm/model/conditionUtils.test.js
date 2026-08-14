@@ -65,6 +65,7 @@ describe('conditionUtils', () => {
 
     expect(snapshot.values.sharedCodes).toEqual(selected);
     expect(snapshot.preview[0].fields[0].value).toBe('Active / Done');
+    expect(snapshot.preview[0].fields[0].previewItems).toEqual(['Active', 'Done']);
     expect(hydrateSavedValues(customRows, snapshot.values).sharedCodes).toEqual(selected);
   });
 
@@ -428,6 +429,11 @@ describe('conditionUtils', () => {
             key: 'technologyCodes',
             fields: [
               { name: 'techCd', label: '기술 코드', type: 'text' },
+            ],
+          },
+          {
+            key: 'detailTechnologyCodes',
+            fields: [
               { name: 'detailTechCd', label: '상세 기술 코드', type: 'text' },
             ],
           },
@@ -441,6 +447,12 @@ describe('conditionUtils', () => {
     });
 
     expect(snapshot.preview[0].label).toBe('기술 조건');
+    expect(snapshot.preview).toHaveLength(1);
+    expect(snapshot.preview[0].lines).toHaveLength(2);
+    expect(snapshot.preview[0].lines.map((line) => line.fields[0].value)).toEqual([
+      'TECH01',
+      'DETAIL01',
+    ]);
     expect(snapshot.preview[0].fields.map(({ value }) => value)).toEqual([
       'TECH01',
       'DETAIL01',

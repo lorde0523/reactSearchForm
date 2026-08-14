@@ -132,6 +132,20 @@ function formatFieldValue(value, field) {
   return String(value);
 }
 
+function getCustomPreviewItems(value, field) {
+  if (field.type !== 'custom' || !Array.isArray(value)) return undefined;
+
+  const items = value
+    .map((item) => {
+      if (!item || typeof item !== 'object') return item;
+      return item.label ?? item.title ?? item.value ?? item.key ?? '';
+    })
+    .filter((item) => item !== undefined && item !== null && item !== '')
+    .map(String);
+
+  return items.length ? items : undefined;
+}
+
 function flattenFields(rows) {
   return rows.flatMap((row) => [
     ...(row.fields || []),
@@ -173,11 +187,13 @@ export function createConditionSnapshot(rows, formValues) {
         values[field.name] = serializedValue;
         if (field.hideInPreview || (field.hideFalsyInPreview && serializedValue === false)) return;
 
+        const previewItems = getCustomPreviewItems(serializedValue, field);
         previewFields.push({
           name: field.name,
           label: field.label || field.placeholder || field.name,
           type: field.type,
           value: formatFieldValue(serializedValue, field),
+          ...(previewItems ? { previewItems } : {}),
         });
     });
 
@@ -204,19 +220,40 @@ export function createConditionSnapshot(rows, formValues) {
       return;
     }
 
+    let unlabeledGroupsPreview;
+
     (row.groups || []).forEach((group) => {
       const fields = group.toggleName && formValues[group.toggleName] !== true
         ? group.fields.filter((field) => field.name === group.toggleName)
         : group.fields;
       const previewFields = collectFields(fields);
 
-      if (previewFields.length) {
+      if (!previewFields.length) return;
+
+      if (group.label) {
         preview.push({
           key: `${row.key}-${group.key}`,
-          label: group.label || row.label,
+          label: group.label,
           fields: previewFields,
         });
+        return;
       }
+
+      if (!unlabeledGroupsPreview) {
+        unlabeledGroupsPreview = {
+          key: `${row.key}-unlabeled-groups`,
+          label: row.label,
+          fields: [],
+          lines: [],
+        };
+        preview.push(unlabeledGroupsPreview);
+      }
+
+      unlabeledGroupsPreview.fields.push(...previewFields);
+      unlabeledGroupsPreview.lines.push({
+        key: `${row.key}-${group.key}`,
+        fields: previewFields,
+      });
     });
   });
 
