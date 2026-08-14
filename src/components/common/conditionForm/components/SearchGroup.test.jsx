@@ -3,7 +3,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { App as AntdApp } from 'antd';
 import { describe, expect, it } from 'vitest';
 import { TextField } from '../fields';
-import SearchConditionForm, { PreviewTable } from './SearchConditionForm';
+import SearchConditionForm, {
+  PreviewTable,
+  parseSavedConditionValue,
+} from './SearchConditionForm';
 import SearchGroup from './SearchGroup';
 import SearchRow from './SearchRow';
 
@@ -65,5 +68,28 @@ describe('PreviewTable', () => {
     expect(html).toContain('1 / 2 / 3 / 4 / 5');
     expect(html).not.toContain('1 / 2 / 3 / 4 / 5 / 6');
     expect(html).toContain('더보기');
+  });
+});
+
+describe('saved condition value', () => {
+  it('key, name, value 컬럼의 value 객체를 복원한다', () => {
+    expect(parseSavedConditionValue({
+      key: 'reception',
+      name: '진행 중',
+      value: { status: 'active' },
+    })).toEqual({ status: 'active' });
+  });
+
+  it('서버에서 JSON 문자열로 받은 value도 복원한다', () => {
+    expect(parseSavedConditionValue({
+      key: 'reception',
+      name: '진행 중',
+      value: '{"status":"active"}',
+    })).toEqual({ status: 'active' });
+  });
+
+  it('기존 values 데이터도 읽기 호환한다', () => {
+    expect(parseSavedConditionValue({ values: { status: 'done' } }))
+      .toEqual({ status: 'done' });
   });
 });

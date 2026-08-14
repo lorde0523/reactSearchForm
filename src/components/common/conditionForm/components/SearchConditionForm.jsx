@@ -23,6 +23,17 @@ import {
 const EMPTY_VALUES = {};
 const EMPTY_CONDITIONS = [];
 
+export function parseSavedConditionValue(condition) {
+  const rawValue = condition?.value ?? condition?.values ?? {};
+  if (typeof rawValue !== 'string') return rawValue || {};
+
+  try {
+    return JSON.parse(rawValue);
+  } catch {
+    return {};
+  }
+}
+
 const COLLAPSED_ITEM_COUNT = 5;
 
 function PreviewFieldValue({ field }) {
@@ -121,6 +132,12 @@ export default function SearchConditionForm({
   const [saving, setSaving] = useState(false);
   const synchronizedForm = useRef({ defaultValues: undefined, methods: undefined });
   const hasDetail = rows.some((row) => row.detail);
+  const availableConditions = useMemo(() => savedConditions
+    .filter((condition) => !conditionKey || !condition.key || condition.key === conditionKey)
+    .map((condition, index) => ({
+      ...condition,
+      selectionId: condition.id ?? `${condition.key ?? conditionKey ?? 'condition'}-${index}`,
+    })), [conditionKey, savedConditions]);
 
   useEffect(() => {
     const previous = synchronizedForm.current;
@@ -159,7 +176,11 @@ export default function SearchConditionForm({
 
     setSaving(true);
     try {
-      await onSaveCondition?.({ conditionKey, name, values: snapshot.values });
+      await onSaveCondition?.({
+        key: conditionKey,
+        name,
+        value: snapshot.values,
+      });
       message.success('조회조건을 저장했습니다.');
       setSaveModalOpen(false);
     } catch (error) {
@@ -171,9 +192,9 @@ export default function SearchConditionForm({
 
   const restoreCondition = (id) => {
     setSelectedConditionId(id);
-    const selected = savedConditions.find((condition) => condition.id === id);
+    const selected = availableConditions.find((condition) => condition.selectionId === id);
     if (!selected) return;
-    methods.reset(hydrateSavedValues(rows, selected.values, initialValues));
+    methods.reset(hydrateSavedValues(rows, parseSavedConditionValue(selected), initialValues));
     message.success(`‘${selected.name}’ 조건을 적용했습니다.`);
   };
 
@@ -190,7 +211,10 @@ export default function SearchConditionForm({
               allowClear
               aria-label="저장된 조회조건"
               className="favorite-box__select"
-              options={savedConditions.map(({ id, name }) => ({ value: id, label: name }))}
+              options={availableConditions.map(({ selectionId, name }) => ({
+                value: selectionId,
+                label: name,
+              }))}
               placeholder="저장조건 선택"
               value={selectedConditionId}
               onChange={restoreCondition}

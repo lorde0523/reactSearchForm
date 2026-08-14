@@ -37,10 +37,15 @@ function BusinessSearchPage() {
   const [shareEnabled, setShareEnabled] = useState(false);
   const [savedConditionsByTab, setSavedConditionsByTab] = useState({
     reception: [
-      { id: 'active-online', name: '진행 중인 온라인 건', values: { status: 'active', channel: 'online' } },
+      {
+        id: 'active-online',
+        key: 'reception',
+        name: '진행 중인 온라인 건',
+        value: { status: 'active', channel: 'online' },
+      },
     ],
     history: [
-      { id: 'completed', name: '완료된 변경 이력', values: { status: 'done' } },
+      { id: 'completed', key: 'history', name: '완료된 변경 이력', value: { status: 'done' } },
     ],
   });
   const [lastSearch, setLastSearch] = useState({});
@@ -54,12 +59,12 @@ function BusinessSearchPage() {
     message.success('조회조건을 적용했습니다.');
   };
 
-  const handleSaveCondition = async ({ conditionKey, name, values }) => {
+  const handleSaveCondition = async ({ key, name, value }) => {
     setSavedConditionsByTab((current) => ({
       ...current,
-      [conditionKey]: [
-        ...(current[conditionKey] || []),
-        { id: `${conditionKey}-${Date.now()}`, name, values },
+      [key]: [
+        ...(current[key] || []),
+        { id: `${key}-${Date.now()}`, key, name, value },
       ],
     }));
   };

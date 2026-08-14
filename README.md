@@ -49,8 +49,8 @@ import {
   defaultValues={{ status: 'active' }}
   savedConditions={savedConditions}
   onSearch={({ conditionKey, values }) => searchOrders(values)}
-  onSaveCondition={({ conditionKey, name, values }) =>
-    saveCondition({ conditionKey, name, values })
+  onSaveCondition={({ key, name, value }) =>
+    saveCondition({ key, name, value })
   }
 >
   <SearchRow rowKey="basic" label="기본 조건" required>
@@ -528,10 +528,46 @@ function CustomerFields({ serverCustomer }) {
 
 초기값 우선순위는 `SearchConditionForm.defaultValues` → 필드 `initialValue` → 필드 `defaultValue`입니다. 배열이나 객체 형태의 `initialValue`는 불필요한 재적용을 막기 위해 state 또는 `useMemo`로 동일한 참조를 유지하는 것이 좋습니다.
 
-저장조건은 다음 형식으로 전달합니다.
+조회조건 저장 API는 `key`, `name`, `value` 컬럼 기준으로 전달합니다.
 
 ```js
-[{ id: 'condition-id', name: '저장 이름', values: { status: 'active' } }]
+{
+  key: 'order-search',
+  name: '진행 중 주문',
+  value: {
+    status: 'active',
+    channel: 'online'
+  }
+}
+```
+
+- `key`: 화면 또는 탭을 구분하는 `SearchConditionForm.conditionKey`
+- `name`: 저장 모달에서 사용자가 입력한 조회조건 이름
+- `value`: RHF에서 수집하고 직렬화한 실제 조회조건 값
+
+서버로 전송할 때 `value` 컬럼이 문자열 타입이면 API 호출 직전에 JSON으로 변환합니다.
+
+```jsx
+const handleSaveCondition = ({ key, name, value }) => {
+  return saveConditionApi({
+    key,
+    name,
+    value: JSON.stringify(value),
+  });
+};
+```
+
+저장 목록은 다음 형태로 `savedConditions`에 전달합니다. `value`는 객체와 JSON 문자열을 모두 지원합니다.
+
+```js
+[
+  {
+    id: 'condition-id', // API가 식별자를 제공하면 전달
+    key: 'order-search',
+    name: '진행 중 주문',
+    value: '{"status":"active","channel":"online"}'
+  }
+]
 ```
 ## API 기반 커스텀 멀티 셀렉트 연결
 
