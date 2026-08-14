@@ -14,6 +14,7 @@ import {
   buildDefaultValues,
   createConditionSnapshot,
   hydrateSavedValues,
+  normalizeSavedValues,
 } from '../model/conditionUtils';
 import SaveConditionModal from './SaveConditionModal';
 
@@ -22,13 +23,7 @@ const EMPTY_CONDITIONS = [];
 
 export function parseSavedConditionValue(condition) {
   const rawValue = condition?.value ?? condition?.values ?? {};
-  if (typeof rawValue !== 'string') return rawValue || {};
-
-  try {
-    return JSON.parse(rawValue);
-  } catch {
-    return {};
-  }
+  return normalizeSavedValues(rawValue);
 }
 
 export default function SearchConditionForm({

@@ -4,6 +4,7 @@ import {
   buildDefaultValues,
   createConditionSnapshot,
   hydrateSavedValues,
+  normalizeSavedValues,
 } from './conditionUtils';
 
 const rows = [
@@ -49,6 +50,20 @@ const rows = [
 ];
 
 describe('conditionUtils', () => {
+  it('JSON 문자열과 이중 직렬화 문자열을 폼 값 객체로 정규화한다', () => {
+    const values = { keyword: '테스트', urgent: true };
+
+    expect(normalizeSavedValues(JSON.stringify(values))).toEqual(values);
+    expect(normalizeSavedValues(JSON.stringify(JSON.stringify(values)))).toEqual(values);
+  });
+
+  it('문자열을 Object.entries로 순회하지 않고 잘못된 값은 빈 객체로 처리한다', () => {
+    expect(normalizeSavedValues('not-json')).toEqual({});
+    expect(normalizeSavedValues(['keyword', '테스트'])).toEqual({});
+    expect(hydrateSavedValues(rows, 'not-json', { urgent: false }))
+      .toEqual({ urgent: false });
+  });
+
   it('stores custom multi-select objects and uses their labels in the preview', () => {
     const customRows = [{
       key: 'codes',

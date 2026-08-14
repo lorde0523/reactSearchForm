@@ -263,11 +263,33 @@ export function createConditionSnapshot(rows, formValues) {
 export function hydrateSavedValues(rows, savedValues, defaults = {}) {
   const fieldsByName = new Map(flattenFields(rows).map((field) => [field.name, field]));
   const hydrated = { ...defaults };
+  const normalizedValues = normalizeSavedValues(savedValues);
 
-  Object.entries(savedValues || {}).forEach(([name, value]) => {
+  Object.entries(normalizedValues).forEach(([name, value]) => {
     const field = fieldsByName.get(name);
     if (field) hydrated[name] = deserializeFieldValue(value, field);
   });
 
   return hydrated;
+}
+
+export function normalizeSavedValues(savedValues) {
+  let normalized = savedValues ?? {};
+
+  // 서버 저장 과정에서 JSON.stringify가 중복 적용된 응답도 안전하게 복원한다.
+  for (let depth = 0; depth < 3 && typeof normalized === 'string'; depth += 1) {
+    if (!normalized.trim()) return {};
+
+    try {
+      normalized = JSON.parse(normalized);
+    } catch {
+      return {};
+    }
+  }
+
+  if (!normalized || typeof normalized !== 'object' || Array.isArray(normalized)) {
+    return {};
+  }
+
+  return normalized;
 }

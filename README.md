@@ -613,14 +613,14 @@ savedConditions에서 현재 conditionKey와 같은 항목 필터링
 }
 ```
 
-저장 목록을 선택하면 `SearchConditionForm`은 객체 또는 JSON 문자열인 `condition.value`를 파싱합니다. 이전 형식인 `condition.values`도 읽기 호환하지만 새 저장 요청은 항상 `value`를 사용합니다.
+저장 목록을 선택하면 `SearchConditionForm`은 객체 또는 JSON 문자열인 `condition.value`를 파싱합니다. 이전 형식인 `condition.values`도 읽기 호환하지만 새 저장 요청은 항상 `value`를 사용합니다. 문자열 상태에서 `Object.entries()`를 실행하면 문자 인덱스가 수천 개 생성되므로 반드시 먼저 객체로 정규화합니다.
 
 ```js
 const rawValue = condition.value ?? condition.values ?? {};
-const savedValue = typeof rawValue === 'string'
-  ? JSON.parse(rawValue)
-  : rawValue;
+const savedValue = normalizeSavedValues(rawValue);
 ```
+
+`normalizeSavedValues()`는 객체, JSON 문자열, 이중으로 `JSON.stringify()`된 문자열까지 처리하며 잘못된 문자열이나 배열은 빈 객체로 반환합니다. `hydrateSavedValues()` 내부에서도 동일한 정규화를 수행하므로 직접 호출해도 문자열이 문자 단위로 분해되지 않습니다.
 
 파싱한 값은 현재 화면에 존재하는 필드만 `name`으로 매칭합니다. 저장 데이터에 현재 화면에 없는 이름이 있으면 복원 대상에서 제외됩니다.
 
