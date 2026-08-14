@@ -569,6 +569,104 @@ const handleSaveCondition = ({ key, name, value }) => {
   }
 ]
 ```
+
+### 저장한 조회조건 불러오기
+
+조회조건 복원은 다음 순서로 처리됩니다.
+
+```text
+savedConditions에서 현재 conditionKey와 같은 항목 필터링
+→ 사용자가 저장조건 name 선택
+→ 선택한 항목의 value 파싱
+→ 화면 필드의 name과 저장값의 key 매칭
+→ 필드 타입에 맞게 deserialize
+→ react-hook-form methods.reset()
+```
+
+실제 값을 다시 필드에 넣을 때 기준이 되는 것은 Row 또는 Group 라벨이 아니라 각 필드의 `name`입니다. Row/Group 라벨과 `preview`는 저장 모달 표시 용도로만 사용됩니다.
+
+```jsx
+<TextField name="customerName" label="고객명" />
+<DateRangeField name="period" label="조회 기간" />
+<CustomField
+  component={ApiSharedCodeSelect}
+  name="sharedCodes"
+  label="공통 코드"
+/>
+```
+
+위 화면에 다음 `value`를 적용하면 같은 이름의 필드에 값이 연결됩니다.
+
+```js
+{
+  customerName: '홍길동',
+  period: ['2026-08-01', '2026-08-31'],
+  sharedCodes: [
+    {
+      disabled: false,
+      key: 'A',
+      label: '진행 중',
+      title: '진행 중',
+      value: 'active'
+    }
+  ]
+}
+```
+
+저장 목록을 선택하면 `SearchConditionForm`은 객체 또는 JSON 문자열인 `condition.value`를 파싱합니다. 이전 형식인 `condition.values`도 읽기 호환하지만 새 저장 요청은 항상 `value`를 사용합니다.
+
+```js
+const rawValue = condition.value ?? condition.values ?? {};
+const savedValue = typeof rawValue === 'string'
+  ? JSON.parse(rawValue)
+  : rawValue;
+```
+
+파싱한 값은 현재 화면에 존재하는 필드만 `name`으로 매칭합니다. 저장 데이터에 현재 화면에 없는 이름이 있으면 복원 대상에서 제외됩니다.
+
+```js
+const hydratedValues = hydrateSavedValues(
+  rows,
+  savedValue,
+  initialValues,
+);
+
+methods.reset(hydratedValues);
+```
+
+타입별 복원 방식은 다음과 같습니다.
+
+- 일반 입력, Select, Checkbox: 저장값을 그대로 사용
+- DatePicker: 날짜 문자열을 dayjs 객체로 변환
+- RangePicker: 날짜 문자열 배열을 dayjs 객체 배열로 변환
+- Week/Month/Year Picker: 해당 필드의 저장 포맷으로 파싱
+- CustomField: 객체 또는 객체 배열을 그대로 사용
+- `deserialize`를 지정한 필드: 해당 함수의 반환값 사용
+
+커스텀 멀티셀렉트는 저장한 객체 배열이 `Controller`를 통해 컴포넌트의 `value`로 다시 전달됩니다.
+
+```text
+condition.value.sharedCodes
+→ hydrateSavedValues()
+→ methods.reset({ sharedCodes: [...] })
+→ Controller(name="sharedCodes")
+→ ApiSharedCodeSelect.value
+```
+
+서버 저장 후에는 저장 API의 성공 응답을 기존 `savedConditions`에 추가하거나 목록 API를 다시 호출해야 즐겨찾기 Select에 새 항목이 나타납니다.
+
+```jsx
+const handleSaveCondition = async ({ key, name, value }) => {
+  await saveConditionApi({
+    key,
+    name,
+    value: JSON.stringify(value),
+  });
+
+  await refetchSavedConditions(key);
+};
+```
+
 ## API 기반 커스텀 멀티 셀렉트 연결
 
 `CustomField`에 `component`를 지정하면 조회조건 관리에 필요한 props를 제외한 나머지 props가 커스텀 컴포넌트로 그대로 전달됩니다. 따라서 `api`, `params`, `activeTabKey` 등 `ApiSharedCodeSelect`가 제공하는 API를 최상위 props로 작성하면 됩니다.
