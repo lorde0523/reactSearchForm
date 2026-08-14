@@ -3,10 +3,11 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { App as AntdApp } from 'antd';
 import { describe, expect, it } from 'vitest';
 import { TextField } from '../fields';
-import SearchConditionForm, {
+import SearchConditionForm, { parseSavedConditionValue } from './SearchConditionForm';
+import {
   PreviewTable,
-  parseSavedConditionValue,
-} from './SearchConditionForm';
+  createSaveConditionPayload,
+} from './SaveConditionModal';
 import SearchGroup from './SearchGroup';
 import SearchRow from './SearchRow';
 
@@ -72,6 +73,18 @@ describe('PreviewTable', () => {
 });
 
 describe('saved condition value', () => {
+  it('모달이 key, name, value 저장 payload를 만든다', () => {
+    expect(createSaveConditionPayload(
+      'reception',
+      '  진행 중  ',
+      { status: 'active' },
+    )).toEqual({
+      key: 'reception',
+      name: '진행 중',
+      value: { status: 'active' },
+    });
+  });
+
   it('key, name, value 컬럼의 value 객체를 복원한다', () => {
     expect(parseSavedConditionValue({
       key: 'reception',
