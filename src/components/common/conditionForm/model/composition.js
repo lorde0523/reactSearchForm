@@ -41,7 +41,11 @@ export function createToggleField(toggle, label) {
 
 function fieldFromElement(element) {
   const { children, field: suppliedField, ...elementProps } = element.props;
-  const props = { ...elementProps, ...(suppliedField || {}) };
+  const props = {
+    ...(element.type.fieldDefaults || {}),
+    ...elementProps,
+    ...(suppliedField || {}),
+  };
   const type = element.type.getFieldType?.(props) || props.type || element.type.fieldType;
   return createFieldSchema(props, type);
 }

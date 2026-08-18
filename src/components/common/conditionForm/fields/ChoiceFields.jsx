@@ -92,6 +92,10 @@ export function CheckboxField({ field: suppliedField, ...props }) {
 }
 
 CheckboxField.fieldType = 'checkbox';
+CheckboxField.fieldDefaults = {
+  includeFalsy: true,
+  hideFalsyInPreview: true,
+};
 
 export function CheckboxGroupField({ field: suppliedField, ...props }) {
   const field = resolveField(suppliedField, props, 'checkboxGroup');

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import SearchGroup from '../components/SearchGroup';
 import SearchRow from '../components/SearchRow';
 import { CheckboxField, PeriodPickerField, SelectField, TextField } from '../fields';
+import { createConditionSnapshot } from './conditionUtils';
 import { createRowsFromChildren } from './composition';
 
 describe('createRowsFromChildren', () => {
@@ -60,13 +61,51 @@ describe('createRowsFromChildren', () => {
         type: 'checkbox',
       }),
       expect.objectContaining({ name: 'status', type: 'select' }),
-      expect.objectContaining({ name: 'urgent', type: 'checkbox' }),
+      expect.objectContaining({
+        hideFalsyInPreview: true,
+        includeFalsy: true,
+        name: 'urgent',
+        type: 'checkbox',
+      }),
     ]);
     expect(rows[0].groups[1].fields[0]).toMatchObject({
       name: 'weekRange',
       picker: 'week',
       range: true,
       type: 'weekRange',
+    });
+  });
+
+  it('CheckboxField의 미체크값 저장과 미리보기 숨김을 기본으로 적용한다', () => {
+    const children = (
+      <SearchRow rowKey="checkbox" label="체크 조건">
+        <CheckboxField name="enabled" label="사용 여부" />
+        <CheckboxField
+          name="visibleUnchecked"
+          label="미체크 표시"
+          hideFalsyInPreview={false}
+          includeFalsy={false}
+        />
+      </SearchRow>
+    );
+
+    const [row] = createRowsFromChildren(children);
+
+    expect(row.fields[0]).toMatchObject({
+      hideFalsyInPreview: true,
+      includeFalsy: true,
+    });
+    expect(row.fields[1]).toMatchObject({
+      hideFalsyInPreview: false,
+      includeFalsy: false,
+    });
+
+    expect(createConditionSnapshot([row], {
+      enabled: false,
+      visibleUnchecked: false,
+    })).toEqual({
+      values: { enabled: false },
+      preview: [],
     });
   });
 
