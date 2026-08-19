@@ -235,6 +235,17 @@ describe('conditionUtils', () => {
       year: '2026',
       yearRange: ['2025', '2027'],
     });
+    expect(snapshot.preview[0].fields.map(({ name, value }) => ({ name, value }))).toEqual([
+      { name: 'week', value: weekStart.format('YYYY-w[주차]') },
+      {
+        name: 'weekRange',
+        value: `${weekStart.format('YYYY-w[주차]')} ~ ${weekEnd.format('YYYY-w[주차]')}`,
+      },
+      { name: 'month', value: '2026-08' },
+      { name: 'monthRange', value: '2026-08 ~ 2026-10' },
+      { name: 'year', value: '2026' },
+      { name: 'yearRange', value: '2025 ~ 2027' },
+    ]);
 
     const hydrated = hydrateSavedValues(pickerRows, snapshot.values);
     expect(hydrated.week.format('YYYYwo')).toBe(snapshot.values.week);

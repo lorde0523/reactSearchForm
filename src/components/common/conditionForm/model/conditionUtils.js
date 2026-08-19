@@ -110,7 +110,20 @@ function formatFieldValue(value, field) {
       .join(' / ');
   }
 
-  if (field.type === 'dateRange' || getPickerConfig(field)?.range) {
+  const pickerConfig = getPickerConfig(field);
+  if (pickerConfig) {
+    const displayFormat = field.displayFormat || pickerConfig.displayFormat;
+    const formatPickerValue = (item) => {
+      const parsed = parsePickerValue(item, field);
+      return parsed?.isValid() ? parsed.format(displayFormat) : String(item ?? '');
+    };
+
+    return pickerConfig.range
+      ? (Array.isArray(value) ? value.map(formatPickerValue).join(' ~ ') : '')
+      : formatPickerValue(value);
+  }
+
+  if (field.type === 'dateRange') {
     return Array.isArray(value) ? value.join(' ~ ') : '';
   }
   if (field.type === 'checkbox') return value ? field.checkedText || field.text || '선택' : '선택 안 함';
