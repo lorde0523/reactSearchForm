@@ -3,7 +3,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { App as AntdApp } from 'antd';
 import { describe, expect, it } from 'vitest';
 import { TextField } from '../fields';
-import SearchConditionForm, { parseSavedConditionValue } from './SearchConditionForm';
+import SearchConditionForm, {
+  parseSavedConditionValue,
+  resolvePreparedRestoreValues,
+} from './SearchConditionForm';
 import {
   PreviewTable,
   createSaveConditionPayload,
@@ -104,5 +107,26 @@ describe('saved condition value', () => {
   it('기존 values 데이터도 읽기 호환한다', () => {
     expect(parseSavedConditionValue({ values: { status: 'done' } }))
       .toEqual({ status: 'done' });
+  });
+
+  it('복원 준비 함수가 없으면 변환된 저장값을 그대로 사용한다', async () => {
+    const values = { status: 'active' };
+
+    await expect(resolvePreparedRestoreValues(undefined, { values }))
+      .resolves.toBe(values);
+  });
+
+  it('비동기 복원 준비 함수가 반환한 최종값을 사용한다', async () => {
+    const prepareRestoreValues = async ({ values }) => ({
+      ...values,
+      detailCode: 'DETAIL-01',
+    });
+
+    await expect(resolvePreparedRestoreValues(prepareRestoreValues, {
+      values: { code: 'CODE-01' },
+    })).resolves.toEqual({
+      code: 'CODE-01',
+      detailCode: 'DETAIL-01',
+    });
   });
 });

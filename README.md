@@ -441,6 +441,7 @@ const request = {
 | --- | --- |
 | `conditionKey` | 페이지 또는 탭을 구분하는 조회조건 키 |
 | `savedConditions` | 현재 사용자가 저장한 조회조건 목록 |
+| `prepareRestoreValues` | 저장값 적용 전에 연동 옵션 API를 준비하는 비동기 함수 |
 | `onSaveCondition` | 저장 모달에서 호출할 API 함수 |
 | `onSearch` | 현재 스냅샷으로 조회할 함수 |
 
@@ -502,6 +503,20 @@ savedConditions에서 conditionKey 필터링
 ```
 
 `condition.value`는 객체, JSON 문자열, 이중 JSON 문자열까지 정규화합니다. 이전 데이터 형식인 `condition.values`도 읽을 수 있지만 새 저장 요청은 `value`를 사용합니다.
+
+앞 필드값에 따라 뒤 필드의 옵션 API가 달라지는 화면은 `prepareRestoreValues`에서 필요한 옵션을 먼저 조회한 뒤 최종값을 반환합니다. 공통 폼은 이 Promise가 끝난 후에만 `reset()`하며, 복원 중 다른 요청이 시작되면 이전 결과를 무시합니다.
+
+```jsx
+<SearchConditionForm
+  formMethods={formMethods}
+  savedConditions={savedConditions}
+  prepareRestoreValues={prepareRestoreValues}
+>
+  {/* fields */}
+</SearchConditionForm>
+```
+
+페이지별 연쇄 API 구현과 커스텀 컴포넌트 수정 위치는 [비동기 저장조건 복원 가이드](./docs/async-saved-condition-restore.md)를 참고합니다.
 
 저장 성공 후에는 목록을 다시 조회하거나 성공 응답을 `savedConditions`에 추가해야 즐겨찾기 Select에 새 항목이 나타납니다.
 
