@@ -28,10 +28,105 @@
 
 ## 변경 위치
 
-공통 `SearchConditionForm`은 이미 `prepareRestoreValues`를 지원합니다. 실제 페이지에서는 다음 두 곳만 작성합니다.
+공통 `SearchConditionForm`은 이미 `prepareRestoreValues`를 지원합니다. 저장 모달은 기존처럼 별도 `SaveConditionModal` 컴포넌트를 그대로 사용하며 수정할 필요가 없습니다. 실제 페이지에서는 다음 두 곳만 작성합니다.
 
 1. 연동 옵션을 순서대로 불러오는 `loadConditionDependencies`
 2. 옵션 state를 반영하고 최종 폼값을 반환하는 `prepareRestoreValues`
+
+## SearchConditionForm 최소 수정 내용
+
+다른 프로젝트에 옮길 때는 기존 `SearchConditionForm` 전체를 교체하지 않고 아래 세 부분만 반영하면 됩니다.
+
+### 1. prop과 요청 ref 추가
+
+```jsx
+export default function SearchConditionForm({
+  // 기존 props
+  prepareRestoreValues,
+}) {
+  // 기존 hooks
+  const restoreController = useRef();
+```
+
+### 2. 기존 restoreCondition만 비동기로 교체
+
+기존 모달 저장 로직이나 Row/Group 렌더링은 변경하지 않습니다.
+
+```jsx
+const restoreCondition = async (id) => {
+  setSelectedConditionId(id);
+
+  const selected = availableConditions.find(
+    (condition) => condition.selectionId === id,
+  );
+  if (!selected) return;
+
+  restoreController.current?.abort();
+  const controller = new AbortController();
+  restoreController.current = controller;
+
+  try {
+    const values = hydrateSavedValues(
+      rows,
+      parseSavedConditionValue(selected),
+      initialValues,
+    );
+
+    const preparedValues = prepareRestoreValues
+      ? await prepareRestoreValues({
+        conditionKey,
+        form: methods,
+        initialValues,
+        savedCondition: selected,
+        signal: controller.signal,
+        values,
+      })
+      : values;
+
+    if (controller.signal.aborted || restoreController.current !== controller) return;
+
+    methods.reset(preparedValues ?? values);
+    message.success(`‘${selected.name}’ 조건을 적용했습니다.`);
+  } catch (error) {
+    if (controller.signal.aborted || restoreController.current !== controller) return;
+
+    setSelectedConditionId(undefined);
+    message.error('조회조건을 불러오지 못했습니다.');
+    console.error(error);
+  } finally {
+    if (restoreController.current === controller) {
+      restoreController.current = undefined;
+    }
+  }
+};
+```
+
+### 3. 초기화·clear·unmount에서 진행 요청 취소
+
+```jsx
+restoreController.current?.abort();
+```
+
+위 한 줄을 조회조건 초기화 함수와 저장조건 clear 처리에 추가합니다. 컴포넌트가 사라질 때도 취소합니다.
+
+```jsx
+useEffect(() => () => {
+  restoreController.current?.abort();
+}, []);
+```
+
+`SaveConditionModal`은 계속 별도 컴포넌트로 렌더링합니다.
+
+```jsx
+<SaveConditionModal
+  conditionKey={conditionKey}
+  open={saveModalOpen}
+  preview={snapshot.preview}
+  value={snapshot.values}
+  onCancel={() => setSaveModalOpen(false)}
+  onSaveCondition={onSaveCondition}
+/>
+```
 
 ## 1. 값 비교 유틸
 
@@ -272,10 +367,8 @@ useEffect(() => {
 공통 폼이 다음을 처리합니다.
 
 - 복원 Promise가 끝난 뒤 `reset()` 실행
-- 복원 중 조회·초기화·저장 버튼 비활성화
-- 복원 중 본문 입력 차단
 - 새 요청 또는 기본값 초기화 시 이전 AbortController 취소
-- 취소를 지원하지 않는 API도 요청 번호로 오래된 결과 무시
+- 취소를 지원하지 않는 API도 현재 AbortController와 비교해 오래된 결과 무시
 - API 실패 시 현재 폼을 유지하고 오류 메시지 표시
 
 페이지에서는 API 오류를 숨기지 말고 `prepareRestoreValues` 밖으로 throw해야 공통 오류 처리가 동작합니다.
