@@ -100,6 +100,7 @@ export default function SearchConditionExample({
           }}
         >
           <SelectField
+            autoSelectFirst
             name="dateType"
             label="날짜 기준"
             width={118}

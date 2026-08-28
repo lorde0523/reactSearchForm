@@ -319,6 +319,55 @@ const formMethods = useForm({ defaultValues: initialValues });
 
 `context`에는 `form`, `name`, `values`, `rawValue`, `args`가 들어옵니다. 자기 필드값은 이미 RHF에 저장되어 있으므로 `onChange`에서는 연관된 다른 필드만 변경하면 됩니다.
 
+### Select 첫 옵션 자동 선택
+
+저장조건이나 탭 공유값에 해당 필드값이 없거나, 현재 값이 새 옵션에 존재하지 않을 때 첫 번째 활성 옵션을 자동 선택할 수 있습니다.
+
+```jsx
+<SelectField
+  autoSelectFirst
+  name="detailCode"
+  options={detailOptions}
+/>
+```
+
+현재 값이 새 옵션에도 있으면 그 값을 유지합니다. 상위 조건 변경으로 옵션 내용이 바뀔 때마다 기존 값의 유효 여부와 관계없이 첫 번째 옵션으로 변경해야 하면 다음 prop을 추가합니다.
+
+```jsx
+<SelectField
+  autoSelectFirst
+  resetToFirstOnOptionsChange
+  name="detailCode"
+  options={detailOptions}
+  onChange={(value, context) => {
+    // 자동 선택에서도 실행된다.
+    // context.source === 'auto'
+    // context.reason === 'missing-value' | 'options-change'
+  }}
+/>
+```
+
+`resetToFirstOnOptionsChange`는 복원된 값이 새 옵션에 존재하더라도 첫 번째 값으로 바꿉니다. 조회조건 저장값을 우선해야 하는 필드는 `autoSelectFirst`만 사용하고, 상위 필드의 사용자 변경 시 하위 값을 비운 뒤 새 옵션을 조회하는 방식을 권장합니다.
+
+```jsx
+<SelectField
+  name="mainCode"
+  options={mainOptions}
+  onChange={(_, { form }) => {
+    setDetailOptions([]);
+    form.setValue('detailCode', undefined);
+  }}
+/>
+
+<SelectField
+  autoSelectFirst
+  name="detailCode"
+  options={detailOptions}
+/>
+```
+
+자동 선택은 RHF 값에 반영되고 기존 `onChange`도 실행됩니다. 자동 선택을 사용하는 필드는 빈 값이 즉시 첫 옵션으로 복구되므로 `allowClear`의 기본값도 `false`가 됩니다. 사용자가 빈 값을 유지할 수 있어야 한다면 자동 선택 prop을 사용하지 않아야 합니다.
+
 다른 필드의 단순 비활성화는 페이지 `useWatch` 대신 `dependencies`와 함수형 `disabled`를 사용하는 것이 간결합니다.
 
 ```jsx

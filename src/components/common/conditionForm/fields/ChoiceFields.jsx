@@ -1,15 +1,108 @@
 import { Checkbox, Radio, Select, Switch } from 'antd';
+import { useEffect, useRef } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
 import ControlledField, { getFieldLabel, getFieldWidth, resolveField } from './ControlledField';
+
+const EMPTY_OPTIONS = [];
+
+function getOptionState(options) {
+  return options.map((option) => ({ disabled: Boolean(option.disabled), value: option.value }));
+}
+
+export function haveSelectOptionsChanged(previousOptions, nextOptions) {
+  if (!previousOptions || previousOptions.length !== nextOptions.length) return true;
+
+  return previousOptions.some((option, index) => (
+    option.disabled !== nextOptions[index].disabled
+    || !Object.is(option.value, nextOptions[index].value)
+  ));
+}
+
+export function resolveSelectAutoValue({
+  autoSelectFirst,
+  currentValue,
+  options,
+  optionsChanged,
+  resetToFirstOnOptionsChange,
+}) {
+  if (!autoSelectFirst && !resetToFirstOnOptionsChange) return currentValue;
+
+  const enabledOptions = options.filter((option) => !option.disabled);
+  if (!enabledOptions.length) return currentValue;
+
+  const hasValue = currentValue !== undefined && currentValue !== null && currentValue !== '';
+  const isValidValue = hasValue
+    && enabledOptions.some((option) => Object.is(option.value, currentValue));
+  const shouldReset = resetToFirstOnOptionsChange && optionsChanged;
+
+  if (!shouldReset && isValidValue) return currentValue;
+  return enabledOptions[0].value;
+}
+
+function useSelectAutoValue(field) {
+  const form = useFormContext();
+  const currentValue = useWatch({ control: form.control, name: field.name });
+  const previousOptions = useRef();
+  const options = field.options || EMPTY_OPTIONS;
+
+  useEffect(() => {
+    const nextOptionState = getOptionState(options);
+    const optionsChanged = previousOptions.current !== undefined
+      && haveSelectOptionsChanged(previousOptions.current, nextOptionState);
+    previousOptions.current = nextOptionState;
+
+    // mode가 있는 Select는 배열값 또는 사용자 입력값을 사용하므로 자동 단일 선택에서 제외한다.
+    if (field.mode) return;
+
+    const nextValue = resolveSelectAutoValue({
+      autoSelectFirst: field.autoSelectFirst,
+      currentValue,
+      options,
+      optionsChanged,
+      resetToFirstOnOptionsChange: field.resetToFirstOnOptionsChange,
+    });
+
+    if (Object.is(currentValue, nextValue)) return;
+
+    form.setValue(field.name, nextValue, {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: true,
+    });
+    field.onChange?.(nextValue, {
+      args: [],
+      field,
+      form,
+      name: field.name,
+      rawValue: nextValue,
+      reason: optionsChanged ? 'options-change' : 'missing-value',
+      source: 'auto',
+      values: form.getValues(),
+    });
+  }, [
+    currentValue,
+    field.autoSelectFirst,
+    field.mode,
+    field.name,
+    field.onChange,
+    field.resetToFirstOnOptionsChange,
+    form,
+    options,
+  ]);
+}
 
 export function SelectField({ field: suppliedField, ...props }) {
   const field = resolveField(suppliedField, props, 'select');
+  useSelectAutoValue(field);
   return (
     <ControlledField
       field={field}
       renderInput={({ controllerField, disabled }) => (
         <Select
           {...controllerField}
-          allowClear
+          allowClear={field.allowClear ?? !(
+            field.autoSelectFirst || field.resetToFirstOnOptionsChange
+          )}
           aria-label={getFieldLabel(field)}
           className={field.className}
           disabled={disabled}
