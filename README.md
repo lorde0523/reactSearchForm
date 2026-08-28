@@ -761,6 +761,8 @@ function OrderSearchTab({ conditionShare }) {
 - `fieldNames` 생략: 폼 전체 공유
 - 저장조건 목록: 공유하지 않고 각 탭의 `conditionKey`로 분리
 
+공용 `useForm`과 탭별 `useForm + snapshot` 중 어떤 구조를 선택할지, 탭 이동 시 기존값과 공유값을 어떤 순서로 합칠지는 [탭별 useForm + Snapshot 공유 가이드](./docs/tab-use-form-snapshot-guide.md)를 참고합니다.
+
 ## 값 변환
 
 특수 입력은 저장, 복원, 모달 표시 규칙을 필드에 선언할 수 있습니다.
