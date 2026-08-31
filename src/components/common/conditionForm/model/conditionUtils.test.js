@@ -136,6 +136,43 @@ describe('conditionUtils', () => {
     });
   });
 
+  it('현재 화면에 없는 다른 탭 필드는 snapshot 저장값과 미리보기에서 제외한다', () => {
+    const snapshot = createConditionSnapshot(rows, {
+      keyword: '현재 탭 값',
+      otherTabOnly: '다른 탭 전용값',
+    });
+
+    expect(snapshot.values).toEqual({ keyword: '현재 탭 값' });
+    expect(JSON.stringify(snapshot.preview)).not.toContain('otherTabOnly');
+  });
+
+  it('다른 탭 snapshot을 복원할 때 대상 화면에 없는 필드는 RHF 적용값에서 제외한다', () => {
+    expect(hydrateSavedValues(rows, {
+      keyword: '공유 검색어',
+      otherTabOnly: '다른 탭 전용값',
+    })).toEqual({
+      keyword: '공유 검색어',
+    });
+  });
+
+  it('탭 공유 snapshot은 현재 화면 필드의 빈 값도 포함해 대상 탭 값을 지울 수 있다', () => {
+    const snapshot = createConditionSnapshot(rows, {
+      channels: [],
+      keyword: '',
+      status: undefined,
+      urgent: false,
+    }, { includeEmptyValues: true });
+
+    expect(snapshot.values).toEqual({
+      channels: [],
+      keyword: '',
+      period: undefined,
+      status: undefined,
+      urgent: false,
+    });
+    expect(snapshot.preview).toEqual([]);
+  });
+
   it('빈 값만 있는 그룹과 row를 제외한다', () => {
     expect(createConditionSnapshot(rows, { keyword: '  ', urgent: false })).toEqual({
       values: {},

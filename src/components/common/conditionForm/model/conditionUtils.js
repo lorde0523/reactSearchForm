@@ -183,7 +183,7 @@ export function buildDefaultValues(rows, suppliedDefaults = {}) {
   return hydrateSavedValues(rows, suppliedDefaults, schemaDefaults);
 }
 
-export function createConditionSnapshot(rows, formValues) {
+export function createConditionSnapshot(rows, formValues, { includeEmptyValues = false } = {}) {
   const values = {};
   const preview = [];
 
@@ -192,10 +192,17 @@ export function createConditionSnapshot(rows, formValues) {
 
     fields.forEach((field) => {
         const currentValue = formValues[field.name];
-        if (!isActiveFieldValue(currentValue, field)) return;
+        const active = isActiveFieldValue(currentValue, field);
+        if (!active) {
+          if (includeEmptyValues) values[field.name] = currentValue;
+          return;
+        }
 
         const serializedValue = serializeFieldValue(currentValue, field);
-        if (isEmptyValue(serializedValue)) return;
+        if (isEmptyValue(serializedValue)) {
+          if (includeEmptyValues) values[field.name] = serializedValue;
+          return;
+        }
 
         values[field.name] = serializedValue;
         if (field.hideInPreview || (field.hideFalsyInPreview && serializedValue === false)) return;

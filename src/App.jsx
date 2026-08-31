@@ -54,6 +54,11 @@ function BusinessSearchPage() {
     enabled: shareEnabled,
   });
 
+  const changeTab = (nextTab) => {
+    conditionShare.transfer(activeTab, nextTab);
+    setActiveTab(nextTab);
+  };
+
   const handleSearch = ({ conditionKey, values }) => {
     setLastSearch({ conditionKey, values });
     message.success('조회조건을 적용했습니다.');
@@ -90,7 +95,7 @@ function BusinessSearchPage() {
         activeKey={activeTab}
         className="search-tabs"
         destroyOnHidden={false}
-        onChange={setActiveTab}
+        onChange={changeTab}
       >
         <Tabs.TabPane tab="접수 조회" key="reception">
           <SearchConditionExample

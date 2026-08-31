@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   App as AntdApp,
   Button,
@@ -27,11 +33,14 @@ export function parseSavedConditionValue(condition) {
 }
 
 export default function SearchConditionForm({
+  conditionShare,
   conditionKey,
   defaultValues = EMPTY_VALUES,
   formMethods,
+  preserveValuesOnDefaultChange,
   savedConditions = EMPTY_CONDITIONS,
   prepareRestoreValues,
+  tabKey,
   onSearch,
   onSaveCondition,
   children,
@@ -46,7 +55,15 @@ export default function SearchConditionForm({
   const [selectedConditionId, setSelectedConditionId] = useState();
   const [snapshot, setSnapshot] = useState({ values: {}, preview: [] });
   const restoreController = useRef();
+  const appliedTransferId = useRef();
   const synchronizedForm = useRef({ defaultValues: undefined, methods: undefined });
+  const resolvedTabKey = tabKey || conditionKey;
+  const shareActiveTab = conditionShare?.activeTab;
+  const shareCapture = conditionShare?.capture || conditionShare?.publish;
+  const shareEnabled = conditionShare?.enabled ?? false;
+  const shareTransferRequest = conditionShare?.transferRequest || conditionShare?.snapshot;
+  const preserveCurrentValues = preserveValuesOnDefaultChange
+    ?? shareEnabled;
   const hasDetail = rows.some((row) => row.detail);
   const availableConditions = useMemo(() => savedConditions
     .filter((condition) => !conditionKey || !condition.key || condition.key === conditionKey)
@@ -59,17 +76,39 @@ export default function SearchConditionForm({
     const previous = synchronizedForm.current;
     if (previous.methods === methods && previous.defaultValues === defaultValues) return;
 
-    restoreController.current?.abort();
+    if (previous.methods !== methods || !preserveCurrentValues) {
+      restoreController.current?.abort();
+    }
     synchronizedForm.current = { defaultValues, methods };
-    methods.reset(initialValues);
+    const nextValues = preserveCurrentValues
+      ? hydrateSavedValues(
+        rows,
+        createConditionSnapshot(
+          rows,
+          methods.getValues(),
+          { includeEmptyValues: true },
+        ).values,
+        initialValues,
+      )
+      : initialValues;
+    methods.reset(nextValues);
     setSelectedConditionId(undefined);
-  }, [defaultValues, initialValues, methods]);
+  }, [
+    defaultValues,
+    initialValues,
+    methods,
+    preserveCurrentValues,
+    rows,
+  ]);
 
   useEffect(() => () => {
     restoreController.current?.abort();
   }, []);
 
-  const collectSnapshot = () => createConditionSnapshot(rows, methods.getValues());
+  const collectSnapshot = useCallback(
+    () => createConditionSnapshot(rows, methods.getValues()),
+    [methods, rows],
+  );
 
   const submitSearch = async () => {
     const nextSnapshot = collectSnapshot();
@@ -88,11 +127,12 @@ export default function SearchConditionForm({
     setSaveModalOpen(true);
   };
 
-  const restoreCondition = async (id) => {
-    setSelectedConditionId(id);
-    const selected = availableConditions.find((condition) => condition.selectionId === id);
-    if (!selected) return;
-
+  const applyConditionValues = useCallback(async ({
+    errorMessage,
+    rawValues,
+    savedCondition,
+    source,
+  }) => {
     restoreController.current?.abort();
     const controller = new AbortController();
     restoreController.current = controller;
@@ -100,7 +140,7 @@ export default function SearchConditionForm({
     try {
       const values = hydrateSavedValues(
         rows,
-        parseSavedConditionValue(selected),
+        rawValues,
         initialValues,
       );
       const preparedValues = prepareRestoreValues
@@ -108,26 +148,80 @@ export default function SearchConditionForm({
           conditionKey,
           form: methods,
           initialValues,
-          savedCondition: selected,
+          savedCondition,
           signal: controller.signal,
+          source,
           values,
         })
         : values;
 
-      if (controller.signal.aborted || restoreController.current !== controller) return;
+      if (controller.signal.aborted || restoreController.current !== controller) return 'stale';
 
       methods.reset(preparedValues ?? values);
-      message.success(`‘${selected.name}’ 조건을 적용했습니다.`);
+      return 'applied';
     } catch (error) {
-      if (controller.signal.aborted || restoreController.current !== controller) return;
+      if (controller.signal.aborted || restoreController.current !== controller) return 'stale';
 
-      setSelectedConditionId(undefined);
-      message.error('조회조건을 불러오지 못했습니다.');
+      if (errorMessage) message.error(errorMessage);
       console.error(error);
+      return 'error';
     } finally {
       if (restoreController.current === controller) restoreController.current = undefined;
     }
+  }, [conditionKey, initialValues, message, methods, prepareRestoreValues, rows]);
+
+  const restoreCondition = async (id) => {
+    setSelectedConditionId(id);
+    const selected = availableConditions.find((condition) => condition.selectionId === id);
+    if (!selected) return;
+
+    const result = await applyConditionValues({
+      errorMessage: '조회조건을 불러오지 못했습니다.',
+      rawValues: parseSavedConditionValue(selected),
+      savedCondition: selected,
+      source: 'favorite',
+    });
+
+    if (result === 'applied') {
+      message.success(`‘${selected.name}’ 조건을 적용했습니다.`);
+    } else if (result === 'error') {
+      setSelectedConditionId(undefined);
+    }
   };
+
+  useEffect(() => {
+    if (!shareCapture || shareActiveTab !== resolvedTabKey) return undefined;
+
+    const captureValues = (values) => {
+      shareCapture(
+        resolvedTabKey,
+        createConditionSnapshot(rows, values, { includeEmptyValues: true }).values,
+      );
+    };
+
+    captureValues(methods.getValues());
+    const subscription = methods.watch(captureValues);
+    return () => subscription.unsubscribe();
+  }, [methods, resolvedTabKey, rows, shareActiveTab, shareCapture]);
+
+  useEffect(() => {
+    if (
+      !shareEnabled
+      || !shareTransferRequest
+      || shareTransferRequest.targetTab !== resolvedTabKey
+      || appliedTransferId.current === shareTransferRequest.id
+    ) {
+      return;
+    }
+
+    appliedTransferId.current = shareTransferRequest.id;
+    setSelectedConditionId(undefined);
+    void applyConditionValues({
+      errorMessage: '공유된 조회조건을 적용하지 못했습니다.',
+      rawValues: shareTransferRequest.values,
+      source: 'tab-share',
+    });
+  }, [applyConditionValues, resolvedTabKey, shareEnabled, shareTransferRequest]);
 
   const clearSelectedCondition = () => {
     restoreController.current?.abort();

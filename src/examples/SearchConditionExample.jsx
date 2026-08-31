@@ -17,7 +17,6 @@ import {
   SwitchField,
   TextAreaField,
   TextField,
-  useSearchConditionSync,
 } from '../components/common/conditionForm';
 
 const statusOptions = [
@@ -65,14 +64,9 @@ export default function SearchConditionExample({
 }) {
   const formMethods = useForm();
 
-  useSearchConditionSync({
-    conditionShare,
-    formMethods,
-    tabKey,
-  });
-
   return (
     <SearchConditionForm
+      conditionShare={conditionShare}
       conditionKey={tabKey}
       defaultValues={defaultValues}
       formMethods={formMethods}
@@ -80,6 +74,7 @@ export default function SearchConditionExample({
       prepareRestoreValues={prepareRestoreValues}
       onSaveCondition={onSaveCondition}
       onSearch={onSearch}
+      tabKey={tabKey}
     >
       <SearchRow rowKey="basic" label="기본 조건" required>
         <TextField

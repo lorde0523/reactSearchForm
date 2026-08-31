@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applySharedValues, pickSharedValues } from './useSearchConditionShare';
+import {
+  applySharedValues,
+  createTabTransferRequest,
+  pickSharedValues,
+} from './useSearchConditionShare';
 
 describe('pickSharedValues', () => {
   it('공유 대상으로 지정한 필드만 추출한다', () => {
@@ -30,6 +34,49 @@ describe('applySharedValues', () => {
     expect(setValue).toHaveBeenNthCalledWith(2, 'status', 'active', {
       shouldDirty: true,
       shouldValidate: false,
+    });
+  });
+});
+
+describe('createTabTransferRequest', () => {
+  it('대상 탭의 기존값을 유지하고 지정한 공유 필드만 출발 탭 값으로 덮어쓴다', () => {
+    expect(createTabTransferRequest({
+      fieldNames: ['keyword', 'status'],
+      id: 1,
+      sourceTab: 'order',
+      sourceValues: {
+        keyword: '새 검색어',
+        orderOnly: '주문 전용',
+        status: 'active',
+      },
+      targetTab: 'delivery',
+      targetValues: {
+        deliveryOnly: '배송 전용',
+        keyword: '이전 검색어',
+      },
+    })).toEqual({
+      id: 1,
+      sourceTab: 'order',
+      targetTab: 'delivery',
+      values: {
+        deliveryOnly: '배송 전용',
+        keyword: '새 검색어',
+        status: 'active',
+      },
+    });
+  });
+
+  it('공유 필드 목록을 생략하면 출발 탭의 전체 snapshot을 합친다', () => {
+    expect(createTabTransferRequest({
+      id: 2,
+      sourceTab: 'order',
+      sourceValues: { keyword: '', orderOnly: '주문 전용' },
+      targetTab: 'delivery',
+      targetValues: { deliveryOnly: '배송 전용' },
+    }).values).toEqual({
+      deliveryOnly: '배송 전용',
+      keyword: '',
+      orderOnly: '주문 전용',
     });
   });
 });

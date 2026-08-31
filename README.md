@@ -488,9 +488,12 @@ const request = {
 
 | prop | 설명 |
 | --- | --- |
+| `conditionShare` | 탭별 snapshot 저장·전달 상태. 전달하면 현재 탭값 capture와 transfer 복원을 공통 폼이 처리 |
 | `conditionKey` | 페이지 또는 탭을 구분하는 조회조건 키 |
+| `tabKey` | 탭 snapshot을 구분하는 키. 생략하면 `conditionKey` 사용 |
 | `savedConditions` | 현재 사용자가 저장한 조회조건 목록 |
 | `prepareRestoreValues` | 저장값 적용 전에 연동 옵션 API를 준비하는 비동기 함수 |
+| `preserveValuesOnDefaultChange` | `defaultValues` 변경 시 현재값 유지 여부. 생략하면 공유 활성 상태에서 자동으로 유지 |
 | `onSaveCondition` | 저장 모달에서 호출할 API 함수 |
 | `onSearch` | 현재 스냅샷으로 조회할 함수 |
 
@@ -718,8 +721,17 @@ function SearchTabs() {
     fieldNames: SHARED_FIELD_NAMES,
   });
 
+  const changeTab = (nextTab) => {
+    conditionShare.transfer(activeTab, nextTab);
+    setActiveTab(nextTab);
+  };
+
   return (
-    <Tabs activeKey={activeTab} onChange={setActiveTab}>
+    <Tabs
+      activeKey={activeTab}
+      destroyOnHidden={false}
+      onChange={changeTab}
+    >
       <Tabs.TabPane tab="주문" key="order">
         <OrderSearchTab conditionShare={conditionShare} />
       </Tabs.TabPane>
@@ -737,17 +749,13 @@ function SearchTabs() {
 function OrderSearchTab({ conditionShare }) {
   const formMethods = useForm();
 
-  useSearchConditionSync({
-    conditionShare,
-    formMethods,
-    tabKey: 'order',
-  });
-
   return (
     <SearchConditionForm
+      conditionShare={conditionShare}
       conditionKey="order"
       formMethods={formMethods}
       savedConditions={orderSavedConditions}
+      tabKey="order"
     >
       {/* 주문 조회조건 */}
     </SearchConditionForm>
@@ -759,6 +767,10 @@ function OrderSearchTab({ conditionShare }) {
 - 항상 공유: `enabled: true`
 - 공유하지 않음: `enabled: false` 또는 공유 훅 생략
 - `fieldNames` 생략: 폼 전체 공유
+- `transfer(sourceTab, targetTab)`: 출발 탭 snapshot과 대상 탭 기존 snapshot을 병합해 전달
+- 대상 탭에 없는 출발 탭 전용 필드: 현재 화면 schema를 기준으로 자동 제외
+- 날짜·커스텀 필드: 즐겨찾기와 동일하게 deserialize 및 `prepareRestoreValues` 후 복원
+- 공유 활성 중 `defaultValues` 변경: 현재 폼값을 우선해 서버 재조회로 인한 덮어쓰기 방지
 - 저장조건 목록: 공유하지 않고 각 탭의 `conditionKey`로 분리
 
 공용 `useForm`과 탭별 `useForm + snapshot` 중 어떤 구조를 선택할지, 탭 이동 시 기존값과 공유값을 어떤 순서로 합칠지는 [탭별 useForm + Snapshot 공유 가이드](./docs/tab-use-form-snapshot-guide.md)를 참고합니다.

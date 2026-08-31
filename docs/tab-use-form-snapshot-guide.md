@@ -173,87 +173,50 @@ const nextValues = {
 
 ## 탭별 Snapshot 보관 예시
 
-아래 코드는 **권장 확장 예시**입니다. 현재 공통 훅에 이 API가 이미 구현되어 있다는 뜻은 아닙니다.
+공통 `useSearchConditionShareState`가 탭별 snapshot을 `useRef`에 보관합니다.
 
 ```jsx
-import { useCallback, useRef, useState } from 'react';
+const SHARED_FIELD_NAMES = ['keyword', 'status', 'period'];
 
-function pickValues(values, fieldNames) {
-  if (!fieldNames.length) return { ...values };
-
-  return fieldNames.reduce((result, name) => {
-    if (Object.prototype.hasOwnProperty.call(values, name)) {
-      result[name] = values[name];
-    }
-
-    return result;
-  }, {});
-}
-
-function useTabConditionSnapshots({ sharedFieldNames = [] } = {}) {
-  const valuesByTabRef = useRef({});
-  const [transferRequest, setTransferRequest] = useState(null);
-
-  const capture = useCallback((tabKey, values) => {
-    valuesByTabRef.current[tabKey] = { ...values };
-  }, []);
-
-  const transfer = useCallback(({ sourceTab, targetTab }) => {
-    const sourceValues = valuesByTabRef.current[sourceTab] ?? {};
-    const targetValues = valuesByTabRef.current[targetTab] ?? {};
-    const sharedValues = pickValues(sourceValues, sharedFieldNames);
-
-    setTransferRequest({
-      id: Date.now(),
-      sourceTab,
-      targetTab,
-      values: {
-        ...targetValues,
-        ...sharedValues,
-      },
-    });
-  }, [sharedFieldNames]);
-
-  return {
-    capture,
-    getTabValues: (tabKey) => valuesByTabRef.current[tabKey] ?? {},
-    transfer,
-    transferRequest,
-  };
-}
+const conditionShare = useSearchConditionShareState({
+  activeTab,
+  enabled: shareEnabled,
+  fieldNames: SHARED_FIELD_NAMES,
+});
 ```
+
+제공되는 값과 함수:
+
+| 이름 | 설명 |
+| --- | --- |
+| `capture(tabKey, values)` | 해당 탭의 최신 snapshot 저장 |
+| `getTabValues(tabKey)` | 해당 탭의 마지막 snapshot 복사본 반환 |
+| `transfer(sourceTab, targetTab)` | 대상 탭 기존값과 출발 탭 공유값을 병합해 전달 요청 생성 |
+| `transferRequest` | 가장 최근 탭 이동 요청 |
+| `enabled` | 공유 활성 여부 |
 
 ## 현재 탭값 기록하기
 
-탭이 활성화되어 있을 때 RHF의 `watch()`로 최신값을 보관할 수 있습니다.
+각 탭의 `SearchConditionForm`에 `conditionShare`와 `tabKey`를 전달하면 현재 활성 탭의 값을 자동으로 기록합니다.
 
 ```jsx
-useEffect(() => {
-  if (activeTab !== tabKey) return undefined;
-
-  capture(tabKey, formMethods.getValues());
-
-  const subscription = formMethods.watch((values) => {
-    capture(tabKey, values);
-  });
-
-  return () => subscription.unsubscribe();
-}, [activeTab, capture, formMethods, tabKey]);
+<SearchConditionForm
+  conditionShare={conditionShare}
+  conditionKey="order"
+  formMethods={formMethods}
+  tabKey="order"
+>
+  {/* 현재 탭 필드 */}
+</SearchConditionForm>
 ```
 
-입력할 때마다 React 화면을 다시 그릴 필요가 없으므로, 탭별 저장소는 `useState`보다 `useRef`가 간단합니다.
+공통 폼은 현재 탭의 필드 schema만 순회해 값을 직렬화합니다. 다른 탭 전용 필드가 RHF 내부에 있더라도 snapshot과 즐겨찾기 저장값에서는 제외됩니다. 탭 공유 snapshot은 빈 문자열, 빈 배열, `undefined`도 기록하므로 출발 탭에서 비운 값이 대상 탭에도 반영됩니다.
 
 ## 탭 이동 요청 만들기
 
 ```jsx
 const changeTab = (nextTab) => {
-  if (shareEnabled) {
-    transfer({
-      sourceTab: activeTab,
-      targetTab: nextTab,
-    });
-  }
-
+  conditionShare.transfer(activeTab, nextTab);
   setActiveTab(nextTab);
 };
 
@@ -268,17 +231,21 @@ const changeTab = (nextTab) => {
 
 ## 대상 탭 useForm에 적용하기
 
-필드가 단순하고 두 탭의 값 형식이 같다면 바로 `reset()`할 수 있습니다.
+`SearchConditionForm`에 `conditionShare`가 연결되어 있으면 `transferRequest.targetTab`이 자기 `tabKey`와 같을 때 자동으로 복원합니다. 페이지에서 직접 `reset()`할 필요가 없습니다.
 
 ```jsx
-useEffect(() => {
-  if (transferRequest?.targetTab !== tabKey) return;
-
-  formMethods.reset(transferRequest.values);
-}, [formMethods, tabKey, transferRequest]);
+<SearchConditionForm
+  conditionShare={conditionShare}
+  conditionKey="delivery"
+  formMethods={formMethods}
+  prepareRestoreValues={prepareRestoreValues}
+  tabKey="delivery"
+>
+  {/* 배송 탭 필드 */}
+</SearchConditionForm>
 ```
 
-하지만 날짜 필드와 커스텀 Select, 연동 options가 있다면 아래의 즐겨찾기 복원 방식을 재사용하는 것이 안전합니다.
+`tabKey`를 생략하면 `conditionKey`를 탭 구분값으로 사용합니다.
 
 ## 즐겨찾기 복원 방식 재사용
 
@@ -293,7 +260,7 @@ useEffect(() => {
 → useForm.reset() 한 번 실행
 ```
 
-`SearchConditionForm` 내부의 즐겨찾기 적용 로직을 공통 함수로 분리하는 형태를 권장합니다.
+`SearchConditionForm`은 즐겨찾기와 탭 공유에 동일한 내부 `applyConditionValues` 경로를 사용합니다.
 
 ```jsx
 const applyConditionValues = async ({
@@ -355,7 +322,16 @@ await applyConditionValues({
 });
 ```
 
-위의 `source` 인자는 적용 경로를 구분하기 위한 **권장 확장값**입니다. 현재 `prepareRestoreValues`의 필수 인자는 아닙니다.
+`prepareRestoreValues`에는 적용 경로를 구분할 수 있는 `source`가 함께 전달됩니다.
+
+```js
+const prepareRestoreValues = async ({ source, values, signal }) => {
+  // source === 'favorite' | 'tab-share'
+  const options = await loadOptions(values, { signal });
+  setOptions(options);
+  return values;
+};
+```
 
 ## 왜 필드별 setValue보다 reset이 안전한가요?
 
@@ -398,7 +374,32 @@ formMethods.reset(serverDefaults);
 
 ## defaultValues 참조 주의
 
-현재 `SearchConditionForm`은 `defaultValues` 참조가 바뀌면 `reset()`을 실행합니다. 렌더링마다 새 객체를 만들면 의도하지 않은 초기화가 발생할 수 있습니다.
+`SearchConditionForm`은 `defaultValues` 참조가 바뀌면 초기값을 다시 계산합니다. `conditionShare.enabled`가 `true`이면 현재 폼값을 초기값보다 우선해서 병합하므로 서버 재조회 때문에 공유값이 덮이지 않습니다.
+
+```js
+const currentSnapshot = createConditionSnapshot(
+  rows,
+  methods.getValues(),
+  { includeEmptyValues: true },
+);
+
+const nextValues = hydrateSavedValues(
+  rows,
+  currentSnapshot.values,
+  initialValues,
+);
+```
+
+공유가 없거나 `preserveValuesOnDefaultChange={false}`를 명시하면 기존처럼 새 기본값으로 초기화합니다.
+
+```jsx
+<SearchConditionForm
+  conditionShare={conditionShare}
+  preserveValuesOnDefaultChange={false}
+/>
+```
+
+공유 중에는 현재값 보존이 기본이지만, 렌더링마다 불필요하게 새 기본값 객체를 만드는 것은 피하는 것이 좋습니다.
 
 ```jsx
 // 피해야 할 예: 렌더링마다 객체가 새로 만들어질 수 있다.
@@ -417,7 +418,7 @@ const defaultValues = useMemo(() => ({
 <SearchConditionForm defaultValues={defaultValues} />
 ```
 
-탭 snapshot을 복원하는 화면에서는 서버 재조회 결과를 계속 `defaultValues`로 넘기기보다 탭 복원 함수에서 적용 순서를 한 번만 제어하는 것이 좋습니다.
+탭 snapshot을 복원하는 화면에서는 서버 재조회 결과를 계속 `defaultValues`로 넘기기보다 `prepareRestoreValues`에서 options를 준비하고 공통 복원 경로가 마지막 `reset()`을 실행하도록 두는 것이 가장 안전합니다.
 
 ## 같은 name을 공유할 때 규칙
 
