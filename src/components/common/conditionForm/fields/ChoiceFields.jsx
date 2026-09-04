@@ -1,6 +1,7 @@
 import { Checkbox, Radio, Select, Switch } from 'antd';
-import { useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
+import { ConditionRestoreContext } from '../model/SearchConditionContext';
 import ControlledField, { getFieldLabel, getFieldWidth, resolveField } from './ControlledField';
 
 const EMPTY_OPTIONS = [];
@@ -23,6 +24,7 @@ export function resolveSelectAutoValue({
   currentValue,
   options,
   optionsChanged,
+  preferCurrentValue = false,
   resetToFirstOnOptionsChange,
 }) {
   if (!autoSelectFirst && !resetToFirstOnOptionsChange) return currentValue;
@@ -35,12 +37,14 @@ export function resolveSelectAutoValue({
     && enabledOptions.some((option) => Object.is(option.value, currentValue));
   const shouldReset = resetToFirstOnOptionsChange && optionsChanged;
 
+  if (preferCurrentValue && isValidValue) return currentValue;
   if (!shouldReset && isValidValue) return currentValue;
   return enabledOptions[0].value;
 }
 
 function useSelectAutoValue(field) {
   const form = useFormContext();
+  const restoreContext = useContext(ConditionRestoreContext);
   const currentValue = useWatch({ control: form.control, name: field.name });
   const previousOptions = useRef();
   const options = field.options || EMPTY_OPTIONS;
@@ -51,6 +55,13 @@ function useSelectAutoValue(field) {
       && haveSelectOptionsChanged(previousOptions.current, nextOptionState);
     previousOptions.current = nextOptionState;
 
+    if (restoreContext.isRestoring) return;
+    const autoValueBlocked = restoreContext.isAutoValueBlocked(field.name);
+    if (autoValueBlocked) {
+      if (!optionsChanged) return;
+      restoreContext.releaseField(field.name);
+    }
+
     // mode가 있는 Select는 배열값 또는 사용자 입력값을 사용하므로 자동 단일 선택에서 제외한다.
     if (field.mode) return;
 
@@ -59,6 +70,7 @@ function useSelectAutoValue(field) {
       currentValue,
       options,
       optionsChanged,
+      preferCurrentValue: !autoValueBlocked && restoreContext.hasExternalValue(field.name),
       resetToFirstOnOptionsChange: field.resetToFirstOnOptionsChange,
     });
 
@@ -88,6 +100,7 @@ function useSelectAutoValue(field) {
     field.resetToFirstOnOptionsChange,
     form,
     options,
+    restoreContext,
   ]);
 }
 

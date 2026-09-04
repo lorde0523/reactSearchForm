@@ -16,6 +16,7 @@ describe('CustomField component adapter', () => {
       name: 'sharedCodes',
       onChange: vi.fn(),
       params,
+      restore: { dependsOn: ['groupCode'] },
       rules: { required: true },
       type: 'custom',
     })).toEqual({

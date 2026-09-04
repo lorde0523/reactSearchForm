@@ -22,6 +22,7 @@ const FIELD_ONLY_PROPS = new Set([
   'onBlur',
   'onChange',
   'render',
+  'restore',
   'rules',
   'serialize',
   'type',

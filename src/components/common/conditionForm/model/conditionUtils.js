@@ -9,6 +9,8 @@ dayjs.extend(customParseFormat);
 dayjs.extend(weekOfYear);
 
 const DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
+export const CONDITION_META_KEY = '__conditionMeta';
+export const CONDITION_VALUE_VERSION = 2;
 
 function getPickerConfig(field) {
   return PICKER_CONFIGS[field.type];
@@ -159,11 +161,22 @@ function getCustomPreviewItems(value, field) {
   return items.length ? items : undefined;
 }
 
-function flattenFields(rows) {
+export function getConditionFields(rows) {
   return rows.flatMap((row) => [
     ...(row.fields || []),
     ...(row.groups || []).flatMap((group) => group.fields),
   ]);
+}
+
+export function getFieldEmptyValue(field) {
+  if (field.emptyValue !== undefined) return field.emptyValue;
+  if (field.type === 'checkbox' || field.type === 'switch') return false;
+  if (field.type === 'checkboxGroup') return [];
+  if (field.type === 'select' && field.mode) return [];
+  if (field.type === 'text' || field.type === 'textArea' || field.type === 'autoComplete') {
+    return '';
+  }
+  return null;
 }
 
 function getFieldInitialValue(field) {
@@ -172,7 +185,7 @@ function getFieldInitialValue(field) {
 
 export function buildDefaultValues(rows, suppliedDefaults = {}) {
   const schemaDefaults = Object.fromEntries(
-    flattenFields(rows)
+    getConditionFields(rows)
       .filter((field) => getFieldInitialValue(field) !== undefined)
       .map((field) => [
         field.name,
@@ -280,8 +293,49 @@ export function createConditionSnapshot(rows, formValues, { includeEmptyValues =
   return { values, preview };
 }
 
+export function createCompleteConditionValues(rows, formValues = {}) {
+  return Object.fromEntries(getConditionFields(rows).map((field) => {
+    const currentValue = formValues[field.name];
+    if (isEmptyValue(currentValue)) return [field.name, getFieldEmptyValue(field)];
+
+    const serializedValue = serializeFieldValue(currentValue, field);
+    return [
+      field.name,
+      isEmptyValue(serializedValue) ? getFieldEmptyValue(field) : serializedValue,
+    ];
+  }));
+}
+
+export function createPersistedConditionValue(rows, formValues, conditionKey) {
+  const values = createCompleteConditionValues(rows, formValues);
+  return {
+    ...values,
+    [CONDITION_META_KEY]: {
+      conditionKey,
+      fieldNames: Object.keys(values),
+      version: CONDITION_VALUE_VERSION,
+    },
+  };
+}
+
+export function parsePersistedConditionValue(savedValues) {
+  const normalized = normalizeSavedValues(savedValues);
+  const metadata = normalized[CONDITION_META_KEY];
+  const values = Object.fromEntries(
+    Object.entries(normalized).filter(([name]) => name !== CONDITION_META_KEY),
+  );
+
+  return {
+    isComplete: Number(metadata?.version) >= CONDITION_VALUE_VERSION,
+    metadata: metadata && typeof metadata === 'object' && !Array.isArray(metadata)
+      ? metadata
+      : undefined,
+    values,
+  };
+}
+
 export function hydrateSavedValues(rows, savedValues, defaults = {}) {
-  const fieldsByName = new Map(flattenFields(rows).map((field) => [field.name, field]));
+  const fieldsByName = new Map(getConditionFields(rows).map((field) => [field.name, field]));
   const hydrated = { ...defaults };
   const normalizedValues = normalizeSavedValues(savedValues);
 

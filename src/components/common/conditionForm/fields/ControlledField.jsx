@@ -2,7 +2,10 @@ import { Form } from 'antd';
 import { useContext, useEffect, useRef } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { deserializeFieldValue } from '../model/conditionUtils';
-import { ConditionDisabledContext } from '../model/SearchConditionContext';
+import {
+  ConditionDisabledContext,
+  ConditionRestoreContext,
+} from '../model/SearchConditionContext';
 
 const EMPTY_DEPENDENCIES = [];
 
@@ -28,6 +31,7 @@ export function resolveFieldDisabled(field, form, dependencyValues, groupDisable
 export default function ControlledField({ field, renderInput }) {
   const methods = useFormContext();
   const contextDisabled = useContext(ConditionDisabledContext);
+  const restoreContext = useContext(ConditionRestoreContext);
   const dependencies = field.dependencies || EMPTY_DEPENDENCIES;
   const dependencyValues = useWatch({
     control: methods.control,
@@ -42,12 +46,14 @@ export default function ControlledField({ field, renderInput }) {
     if (previous.name === field.name && Object.is(previous.value, field.initialValue)) return;
 
     previousInitialValue.current = { name: field.name, value: field.initialValue };
+    if (restoreContext.hasExternalValue(field.name)) return;
+
     methods.setValue(field.name, deserializeFieldValue(field.initialValue, field), {
       shouldDirty: false,
       shouldTouch: false,
       shouldValidate: false,
     });
-  }, [field.deserialize, field.initialValue, field.name, field.type, methods]);
+  }, [field.deserialize, field.initialValue, field.name, field.type, methods, restoreContext]);
 
   return (
     <Controller
@@ -59,12 +65,14 @@ export default function ControlledField({ field, renderInput }) {
           ...controllerField,
           onChange: (rawValue, ...args) => {
             controllerField.onChange(rawValue);
+            restoreContext.reportUserChange(field.name);
             field.onChange?.(normalizeChangeValue(rawValue), {
               args,
               field,
               form: methods,
               name: field.name,
               rawValue,
+              source: 'user',
               values: methods.getValues(),
             });
           },

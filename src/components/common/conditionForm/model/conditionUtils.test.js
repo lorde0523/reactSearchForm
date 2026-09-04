@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import dayjs from 'dayjs';
 import {
   buildDefaultValues,
+  createCompleteConditionValues,
   createConditionSnapshot,
+  createPersistedConditionValue,
   hydrateSavedValues,
   normalizeSavedValues,
+  parsePersistedConditionValue,
 } from './conditionUtils';
 
 const rows = [
@@ -50,6 +53,59 @@ const rows = [
 ];
 
 describe('conditionUtils', () => {
+  it('즐겨찾기는 빈 값과 false를 포함한 v2 전체 폼 상태로 저장한다', () => {
+    const value = createPersistedConditionValue(rows, {
+      channels: [],
+      keyword: '',
+      period: undefined,
+      status: null,
+      urgent: false,
+    }, 'orders');
+
+    expect(value).toEqual({
+      __conditionMeta: {
+        conditionKey: 'orders',
+        fieldNames: ['keyword', 'urgent', 'period', 'status', 'channels'],
+        version: 2,
+      },
+      channels: [],
+      keyword: '',
+      period: null,
+      status: null,
+      urgent: false,
+    });
+    expect(JSON.parse(JSON.stringify(value))).toEqual(value);
+  });
+
+  it('페이지 세션용 전체 값은 메타데이터 없이 필드별 표준 빈 값을 사용한다', () => {
+    expect(createCompleteConditionValues(rows, {})).toEqual({
+      channels: [],
+      keyword: '',
+      period: null,
+      status: null,
+      urgent: false,
+    });
+  });
+
+  it('v2 메타데이터를 분리하고 기존 평면 저장값도 계속 읽는다', () => {
+    const current = parsePersistedConditionValue({
+      __conditionMeta: { conditionKey: 'orders', version: 2 },
+      keyword: '현재 형식',
+    });
+    const legacy = parsePersistedConditionValue(JSON.stringify({ keyword: '기존 형식' }));
+
+    expect(current).toEqual({
+      isComplete: true,
+      metadata: { conditionKey: 'orders', version: 2 },
+      values: { keyword: '현재 형식' },
+    });
+    expect(legacy).toEqual({
+      isComplete: false,
+      metadata: undefined,
+      values: { keyword: '기존 형식' },
+    });
+  });
+
   it('JSON 문자열과 이중 직렬화 문자열을 폼 값 객체로 정규화한다', () => {
     const values = { keyword: '테스트', urgent: true };
 

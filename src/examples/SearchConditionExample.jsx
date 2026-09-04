@@ -59,6 +59,7 @@ export default function SearchConditionExample({
   tabKey,
   savedConditions,
   prepareRestoreValues,
+  onRestoreStateChange,
   onSaveCondition,
   onSearch,
 }) {
@@ -72,6 +73,7 @@ export default function SearchConditionExample({
       formMethods={formMethods}
       savedConditions={savedConditions}
       prepareRestoreValues={prepareRestoreValues}
+      onRestoreStateChange={onRestoreStateChange}
       onSaveCondition={onSaveCondition}
       onSearch={onSearch}
       tabKey={tabKey}

@@ -53,35 +53,51 @@ export function useSearchConditionShareState({
   enabled = false,
   fieldNames = EMPTY_FIELD_NAMES,
 } = {}) {
-  const snapshotsByTab = useRef({});
+  const tabValuesByKey = useRef({});
+  const tabReadersByKey = useRef({});
   const transferSequence = useRef(0);
   const [transferRequest, setTransferRequest] = useState(null);
 
-  useEffect(() => {
-    if (!enabled) setTransferRequest(null);
-  }, [enabled]);
-
   const capture = useCallback((tabKey, values) => {
     if (!tabKey) return;
-    snapshotsByTab.current[tabKey] = { ...values };
+    tabValuesByKey.current[tabKey] = { ...values };
   }, []);
 
   const getTabValues = useCallback(
-    (tabKey) => ({ ...(snapshotsByTab.current[tabKey] || {}) }),
+    (tabKey) => ({ ...(tabValuesByKey.current[tabKey] || {}) }),
     [],
   );
+
+  const registerTab = useCallback((tabKey, getValues) => {
+    if (!tabKey || typeof getValues !== 'function') return () => {};
+    tabReadersByKey.current[tabKey] = getValues;
+
+    return () => {
+      if (tabReadersByKey.current[tabKey] === getValues) {
+        delete tabReadersByKey.current[tabKey];
+      }
+    };
+  }, []);
+
+  const acknowledgeTransfer = useCallback((id) => {
+    setTransferRequest((current) => (current?.id === id ? null : current));
+  }, []);
 
   const transfer = useCallback((sourceTab, targetTab) => {
     if (!enabled || !sourceTab || !targetTab || sourceTab === targetTab) return null;
 
+    const sourceValues = tabReadersByKey.current[sourceTab]?.()
+      ?? tabValuesByKey.current[sourceTab]
+      ?? {};
+    tabValuesByKey.current[sourceTab] = { ...sourceValues };
     transferSequence.current += 1;
     const request = createTabTransferRequest({
       fieldNames,
       id: transferSequence.current,
       sourceTab,
-      sourceValues: snapshotsByTab.current[sourceTab],
+      sourceValues,
       targetTab,
-      targetValues: snapshotsByTab.current[targetTab],
+      targetValues: tabValuesByKey.current[targetTab],
     });
 
     setTransferRequest(request);
@@ -90,9 +106,11 @@ export function useSearchConditionShareState({
 
   return useMemo(() => ({
     activeTab,
+    acknowledgeTransfer,
     capture,
     enabled,
     getTabValues,
+    registerTab,
     // publish와 snapshot은 기존 사용처 호환을 위한 별칭이다.
     publish: capture,
     snapshot: transferRequest,
@@ -100,9 +118,11 @@ export function useSearchConditionShareState({
     transferRequest,
   }), [
     activeTab,
+    acknowledgeTransfer,
     capture,
     enabled,
     getTabValues,
+    registerTab,
     transfer,
     transferRequest,
   ]);
@@ -115,27 +135,46 @@ export function useSearchConditionSync({
 }) {
   const activeTab = conditionShare?.activeTab;
   const capture = conditionShare?.capture || conditionShare?.publish;
-  const enabled = conditionShare?.enabled ?? false;
+  const acknowledgeTransfer = conditionShare?.acknowledgeTransfer;
+  const registerTab = conditionShare?.registerTab;
   const transferRequest = conditionShare?.transferRequest || conditionShare?.snapshot;
 
   // 기존 직접 사용 방식은 대상 탭에 전달값을 필드 단위로 적용한다.
   // 날짜/커스텀 필드는 SearchConditionForm의 conditionShare prop 사용을 권장한다.
   useEffect(() => {
-    if (!enabled || transferRequest?.targetTab !== tabKey) return;
+    if (
+      !transferRequest
+      || !tabKey
+      || transferRequest.targetTab !== tabKey
+    ) {
+      return;
+    }
     applySharedValues(formMethods, transferRequest.values);
-  }, [enabled, formMethods, tabKey, transferRequest]);
+    capture?.(tabKey, formMethods.getValues());
+    acknowledgeTransfer?.(transferRequest.id, 'applied');
+  }, [acknowledgeTransfer, capture, formMethods, tabKey, transferRequest]);
 
   useEffect(() => {
-    if (activeTab !== tabKey || !capture) return undefined;
+    if (!tabKey || !capture) return undefined;
 
     capture(tabKey, formMethods.getValues());
+    const unregister = registerTab?.(tabKey, () => formMethods.getValues());
+    let unsubscribe;
+    if (formMethods.subscribe) {
+      unsubscribe = formMethods.subscribe({
+        callback: ({ values }) => capture(tabKey, values),
+        formState: { values: true },
+      });
+    } else {
+      const subscription = formMethods.watch((values) => capture(tabKey, values));
+      unsubscribe = () => subscription.unsubscribe();
+    }
 
-    const subscription = formMethods.watch((values) => {
-      capture(tabKey, values);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [activeTab, capture, formMethods, tabKey]);
+    return () => {
+      unsubscribe?.();
+      unregister?.();
+    };
+  }, [activeTab, capture, formMethods, registerTab, tabKey]);
 
   return transferRequest?.targetTab === tabKey ? transferRequest : null;
 }

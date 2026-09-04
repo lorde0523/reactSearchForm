@@ -101,6 +101,15 @@ describe('saved condition value', () => {
     })).toEqual({ status: 'active' });
   });
 
+  it('v2 저장값에서 메타데이터를 제외하고 폼값만 복원한다', () => {
+    expect(parseSavedConditionValue({
+      value: {
+        __conditionMeta: { conditionKey: 'reception', version: 2 },
+        status: 'active',
+      },
+    })).toEqual({ status: 'active' });
+  });
+
   it('기존 values 데이터도 읽기 호환한다', () => {
     expect(parseSavedConditionValue({ values: { status: 'done' } }))
       .toEqual({ status: 'done' });

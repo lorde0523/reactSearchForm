@@ -488,14 +488,15 @@ const request = {
 
 | prop | 설명 |
 | --- | --- |
-| `conditionShare` | 탭별 snapshot 저장·전달 상태. 전달하면 현재 탭값 capture와 transfer 복원을 공통 폼이 처리 |
+| `conditionShare` | 탭별 페이지 세션값과 전달 요청. 최신값 등록, transfer, 성공·실패 확인 처리를 공통 폼이 담당 |
 | `conditionKey` | 페이지 또는 탭을 구분하는 조회조건 키 |
-| `tabKey` | 탭 snapshot을 구분하는 키. 생략하면 `conditionKey` 사용 |
+| `tabKey` | 탭 세션값을 구분하는 키. 생략하면 `conditionKey` 사용 |
 | `savedConditions` | 현재 사용자가 저장한 조회조건 목록 |
-| `prepareRestoreValues` | 저장값 적용 전에 연동 옵션 API를 준비하는 비동기 함수 |
-| `preserveValuesOnDefaultChange` | `defaultValues` 변경 시 현재값 유지 여부. 생략하면 공유 활성 상태에서 자동으로 유지 |
+| `prepareRestoreValues` | 기존 화면 호환용 폼 단위 복원 전처리 함수. 이후 필드별 `restore.prepare`가 실행됨 |
+| `preserveValuesOnDefaultChange` | `defaultValues` 변경 시 현재값 유지 여부. 생략하면 `conditionShare` 연결 시 자동으로 유지 |
+| `onRestoreStateChange` | 복원 시작·종료 알림. `source`는 `favorite`, `tab-inherit`, `tab-session`이며 상위 Tabs 이동을 잠그는 데 사용 |
 | `onSaveCondition` | 저장 모달에서 호출할 API 함수 |
-| `onSearch` | 현재 스냅샷으로 조회할 함수 |
+| `onSearch` | 실제 활성 조회조건만 전달받아 조회할 함수 |
 
 저장 콜백은 하나의 레코드를 전달합니다.
 
@@ -504,6 +505,11 @@ const request = {
   key: 'order-search',
   name: '진행 중 주문',
   value: {
+    __conditionMeta: {
+      version: 2,
+      conditionKey: 'order-search',
+      fieldNames: ['status', 'urgent'],
+    },
     status: 'active',
     urgent: false,
   },
@@ -531,16 +537,18 @@ const savedConditions = [
 ];
 ```
 
-### 스냅샷 규칙
+### 저장값 규칙
 
 - 실제 저장과 복원 기준은 필드의 `name`
 - Row/Group/Field `label`은 저장 모달 표시용
-- 빈 문자열, `undefined`, 빈 일반 값은 제외
+- 즐겨찾기는 현재 폼 스키마의 모든 필드와 `false`, 빈 문자열, 빈 배열을 포함
+- JSON에서 제거되는 `undefined`는 필드 유형에 따라 `''`, `false`, `[]`, `null`로 변환
 - 단일 Checkbox의 `false`는 저장하되 모달에서 숨김
 - CheckboxGroup은 선택된 값 배열 저장
-- 비활성화된 Group/Row의 자식 필드는 제외하고 제어 체크박스 상태는 저장
+- 비활성화된 Group/Row의 값도 정확한 화면 재현을 위해 저장하지만 조회 payload에서는 제외
 - 날짜와 기간은 필드 포맷에 맞는 문자열로 직렬화
 - CustomField 객체와 객체 배열은 그대로 저장
+- 검색 payload는 즐겨찾기 전체 저장값과 별도로 활성 필드만 생성
 
 커스텀 멀티셀렉트 값이 6개 이상이면 저장 모달에는 처음 5개와 `더보기` 버튼이 표시됩니다.
 
@@ -548,15 +556,18 @@ const savedConditions = [
 
 ```text
 savedConditions에서 conditionKey 필터링
-→ condition.value 정규화
+→ condition.value 버전·메타데이터 분리
 → 현재 화면 필드의 name과 매칭
 → 필드별 deserialize
-→ react-hook-form reset()
+→ prepareRestoreValues 실행
+→ restore.dependsOn 순서로 필드 옵션 준비·값 검증
+→ 모든 준비 성공 후 react-hook-form reset() 1회 실행
+→ 탭 세션값 갱신 및 전달 요청 완료 확인
 ```
 
 `condition.value`는 객체, JSON 문자열, 이중 JSON 문자열까지 정규화합니다. 이전 데이터 형식인 `condition.values`도 읽을 수 있지만 새 저장 요청은 `value`를 사용합니다.
 
-앞 필드값에 따라 뒤 필드의 옵션 API가 달라지는 화면은 `prepareRestoreValues`에서 필요한 옵션을 먼저 조회한 뒤 최종값을 반환합니다. 공통 폼은 이 Promise가 끝난 후에만 `reset()`하며, 복원 중 다른 요청이 시작되면 이전 결과를 무시합니다.
+앞 필드값에 따라 뒤 필드의 옵션 API가 달라지는 화면은 필드의 `restore` 계약을 사용합니다. `prepareRestoreValues`도 기존 화면과의 호환을 위해 먼저 실행됩니다. 더 늦게 시작한 즐겨찾기 또는 탭 상속 요청이 이전 요청을 취소합니다.
 
 ```jsx
 <SearchConditionForm
@@ -567,6 +578,29 @@ savedConditions에서 conditionKey 필터링
   {/* fields */}
 </SearchConditionForm>
 ```
+
+```jsx
+<SelectField
+  name="detailCode"
+  restore={{
+    dependsOn: ['categoryCode'],
+    prepare: async ({ value, values, signal, emptyValue }) => {
+      const options = await loadDetailOptions(values.categoryCode, { signal });
+      const valid = options.some((option) => option.value === value);
+
+      return {
+        options,
+        valid,
+        nextValue: valid ? value : emptyValue,
+        commit: () => setDetailOptions(options),
+        warning: valid ? undefined : '저장된 상세 코드가 현재 목록에 없어 초기화했습니다.',
+      };
+    },
+  }}
+/>
+```
+
+복원 중에는 즐겨찾기 선택, 저장, 초기화, 조회가 비활성화됩니다. 저장된 Select 값이 준비된 옵션에 없으면 해당 필드만 비우고 초기값 자동 선택을 막습니다.
 
 페이지별 연쇄 API 구현과 커스텀 컴포넌트 수정 위치는 [비동기 저장조건 복원 가이드](./docs/async-saved-condition-restore.md)를 참고합니다.
 
@@ -704,7 +738,7 @@ const handleSearch = ({ values }) => {
 
 ## 탭 사이 현재 조회조건 공유
 
-각 탭은 자체 `useForm()`과 저장조건 목록을 유지하고, 필요한 현재값만 공유할 수 있습니다.
+각 탭은 자체 `useForm()`과 저장조건 목록을 유지합니다. 전체 현재값은 페이지 메모리에 보관하고, 이동할 때 지정된 필드만 상속할 수 있습니다.
 
 상위 Tabs:
 
@@ -714,6 +748,7 @@ const SHARED_FIELD_NAMES = ['keyword', 'dateType', 'period', 'status'];
 function SearchTabs() {
   const [activeTab, setActiveTab] = useState('order');
   const [shareEnabled, setShareEnabled] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const conditionShare = useSearchConditionShareState({
     activeTab,
@@ -722,6 +757,7 @@ function SearchTabs() {
   });
 
   const changeTab = (nextTab) => {
+    if (isRestoring) return;
     conditionShare.transfer(activeTab, nextTab);
     setActiveTab(nextTab);
   };
@@ -733,10 +769,16 @@ function SearchTabs() {
       onChange={changeTab}
     >
       <Tabs.TabPane tab="주문" key="order">
-        <OrderSearchTab conditionShare={conditionShare} />
+        <OrderSearchTab
+          conditionShare={conditionShare}
+          onRestoreStateChange={({ isRestoring: restoring }) => setIsRestoring(restoring)}
+        />
       </Tabs.TabPane>
       <Tabs.TabPane tab="배송" key="delivery">
-        <DeliverySearchTab conditionShare={conditionShare} />
+        <DeliverySearchTab
+          conditionShare={conditionShare}
+          onRestoreStateChange={({ isRestoring: restoring }) => setIsRestoring(restoring)}
+        />
       </Tabs.TabPane>
     </Tabs>
   );
@@ -746,7 +788,7 @@ function SearchTabs() {
 하위 탭:
 
 ```jsx
-function OrderSearchTab({ conditionShare }) {
+function OrderSearchTab({ conditionShare, onRestoreStateChange }) {
   const formMethods = useForm();
 
   return (
@@ -756,6 +798,7 @@ function OrderSearchTab({ conditionShare }) {
       formMethods={formMethods}
       savedConditions={orderSavedConditions}
       tabKey="order"
+      onRestoreStateChange={onRestoreStateChange}
     >
       {/* 주문 조회조건 */}
     </SearchConditionForm>
@@ -767,13 +810,16 @@ function OrderSearchTab({ conditionShare }) {
 - 항상 공유: `enabled: true`
 - 공유하지 않음: `enabled: false` 또는 공유 훅 생략
 - `fieldNames` 생략: 폼 전체 공유
-- `transfer(sourceTab, targetTab)`: 출발 탭 snapshot과 대상 탭 기존 snapshot을 병합해 전달
+- `transfer(sourceTab, targetTab)`: 등록된 `getValues()`로 출발 탭 최신값을 동기 수집하고 대상 탭 세션값과 병합
+- 대상 탭이 복원 성공 또는 실패를 확인하기 전에는 전달 요청을 제거하지 않음
 - 대상 탭에 없는 출발 탭 전용 필드: 현재 화면 schema를 기준으로 자동 제외
-- 날짜·커스텀 필드: 즐겨찾기와 동일하게 deserialize 및 `prepareRestoreValues` 후 복원
-- 공유 활성 중 `defaultValues` 변경: 현재 폼값을 우선해 서버 재조회로 인한 덮어쓰기 방지
+- 날짜·커스텀 필드: 즐겨찾기와 동일한 복원 트랜잭션과 필드 `restore` 단계 사용
+- `conditionShare` 연결 중 `defaultValues` 변경: 현재 폼값을 우선해 서버 재조회로 인한 덮어쓰기 방지
+- 공유 토글을 꺼도 탭별 세션값은 유지하고 새로운 전달만 막음
+- 페이지 새로고침 후에는 세션값을 복구하지 않음
 - 저장조건 목록: 공유하지 않고 각 탭의 `conditionKey`로 분리
 
-공용 `useForm`과 탭별 `useForm + snapshot` 중 어떤 구조를 선택할지, 탭 이동 시 기존값과 공유값을 어떤 순서로 합칠지는 [탭별 useForm + Snapshot 공유 가이드](./docs/tab-use-form-snapshot-guide.md)를 참고합니다.
+전체 복원 우선순위와 필드 API는 [조회조건 복원 트랜잭션 v2](./docs/condition-restore-v2.md)를 참고합니다. 기존 구조 비교는 [탭별 useForm + Snapshot 공유 가이드](./docs/tab-use-form-snapshot-guide.md)에 남겨 두었습니다.
 
 ## 값 변환
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { App as AntdApp, Col, ConfigProvider, Row, Switch, Table, Tabs, Tag, Typography } from 'antd';
 import koKR from 'antd/locale/ko_KR';
 import { useSearchConditionShareState } from './components/common/conditionForm';
@@ -49,12 +49,25 @@ function BusinessSearchPage() {
     ],
   });
   const [lastSearch, setLastSearch] = useState({});
+  const [restoringByTab, setRestoringByTab] = useState({});
   const conditionShare = useSearchConditionShareState({
     activeTab,
     enabled: shareEnabled,
   });
+  const tabNavigationBlocked = Object.values(restoringByTab).some(Boolean);
+
+  const handleRestoreStateChange = useCallback(({ isRestoring, tabKey }) => {
+    setRestoringByTab((current) => {
+      if (Boolean(current[tabKey]) === isRestoring) return current;
+      return { ...current, [tabKey]: isRestoring };
+    });
+  }, []);
 
   const changeTab = (nextTab) => {
+    if (tabNavigationBlocked) {
+      message.warning('조회조건을 적용한 뒤 탭을 이동할 수 있습니다.');
+      return;
+    }
     conditionShare.transfer(activeTab, nextTab);
     setActiveTab(nextTab);
   };
@@ -97,23 +110,33 @@ function BusinessSearchPage() {
         destroyOnHidden={false}
         onChange={changeTab}
       >
-        <Tabs.TabPane tab="접수 조회" key="reception">
+        <Tabs.TabPane
+          disabled={tabNavigationBlocked && activeTab !== 'reception'}
+          tab="접수 조회"
+          key="reception"
+        >
           <SearchConditionExample
             conditionShare={conditionShare}
             defaultValues={TAB_DEFAULT_VALUES.reception}
             savedConditions={savedConditionsByTab.reception}
             tabKey="reception"
+            onRestoreStateChange={handleRestoreStateChange}
             onSaveCondition={handleSaveCondition}
             onSearch={handleSearch}
           />
         </Tabs.TabPane>
 
-        <Tabs.TabPane tab="변경 이력 조회" key="history">
+        <Tabs.TabPane
+          disabled={tabNavigationBlocked && activeTab !== 'history'}
+          tab="변경 이력 조회"
+          key="history"
+        >
           <SearchConditionExample
             conditionShare={conditionShare}
             defaultValues={TAB_DEFAULT_VALUES.history}
             savedConditions={savedConditionsByTab.history}
             tabKey="history"
+            onRestoreStateChange={handleRestoreStateChange}
             onSaveCondition={handleSaveCondition}
             onSearch={handleSearch}
           />

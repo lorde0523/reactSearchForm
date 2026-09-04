@@ -49,6 +49,17 @@ describe('resolveSelectAutoValue', () => {
       resetToFirstOnOptionsChange: true,
     })).toBe('first');
   });
+
+  it('외부 복원값을 보호하는 동안에는 강제 변경 옵션보다 유효한 복원값을 우선한다', () => {
+    expect(resolveSelectAutoValue({
+      autoSelectFirst: true,
+      currentValue: 'second',
+      options,
+      optionsChanged: true,
+      preferCurrentValue: true,
+      resetToFirstOnOptionsChange: true,
+    })).toBe('second');
+  });
 });
 
 describe('haveSelectOptionsChanged', () => {

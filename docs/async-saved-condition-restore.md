@@ -301,7 +301,7 @@ const prepareRestoreValues = useCallback(async ({ values, signal }) => {
 | `signal` | 이전 복원 요청을 취소하기 위한 AbortSignal |
 | `conditionKey` | 현재 화면 조회조건 키 |
 | `savedCondition` | 사용자가 선택한 원본 저장조건 레코드 |
-| `source` | 적용 경로. 즐겨찾기는 `favorite`, 탭 snapshot 공유는 `tab-share` |
+| `source` | 기존 폼 전처리 호환값. 즐겨찾기는 `favorite`, 탭 조회조건 상속은 `tab-share` |
 | `initialValues` | 화면 기본값 |
 | `form` | react-hook-form methods |
 
