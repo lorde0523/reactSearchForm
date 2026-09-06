@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, expect, it } from 'vitest';
 import SearchGroup from '../components/SearchGroup';
 import SearchRow from '../components/SearchRow';
+import SearchRowFlow from '../components/SearchRowFlow';
 import { CheckboxField, PeriodPickerField, SelectField, TextField } from '../fields';
 import { createConditionSnapshot } from './conditionUtils';
 import { createRowsFromChildren } from './composition';
@@ -153,5 +154,44 @@ describe('createRowsFromChildren', () => {
       key: 'channel',
       label: '접수 채널',
     });
+  });
+});
+
+
+describe('layout-independent composition', () => {
+  it('Flow와 Fragment를 추가해도 메타데이터와 저장 결과가 같다', () => {
+    const children = [
+      <SearchRow key="a" rowKey="a" label="첫째">
+        <TextField name="keyword" label="검색어" />
+      </SearchRow>,
+      <SearchRow key="b" rowKey="b" label="둘째" detail>
+        <SearchGroup groupKey="status" label="상태" toggle={{ name: 'useStatus', controlRow: true }}>
+          <TextField name="status" label="진행 상태" />
+        </SearchGroup>
+      </SearchRow>,
+    ];
+    const original = createRowsFromChildren(children);
+    const wrapped = createRowsFromChildren(
+      <SearchRowFlow gap={24} className="publisher-grid" style={{ display: 'grid' }}>
+        <>{children}</>
+      </SearchRowFlow>,
+    );
+    expect(wrapped).toEqual(original);
+    for (const useStatus of [true, false]) {
+      const values = { keyword: '고객', status: '진행', useStatus };
+      expect(createConditionSnapshot(wrapped, values)).toEqual(createConditionSnapshot(original, values));
+    }
+  });
+
+  it('행과 그룹의 배치 props를 저장 메타데이터에서 제외한다', () => {
+    const plain = <SearchRow rowKey="row" label="조건"><SearchGroup label="그룹"><TextField name="q" /></SearchGroup></SearchRow>;
+    const styled = (
+      <SearchRow rowKey="row" label="조건" fullWidth labelPlacement="stacked" className="custom" style={{ gap: 24 }} detailOpen>
+        <SearchGroup label="그룹" className="item" groupClassName="group" style={{ padding: 8 }}>
+          <TextField name="q" />
+        </SearchGroup>
+      </SearchRow>
+    );
+    expect(createRowsFromChildren(styled)).toEqual(createRowsFromChildren(plain));
   });
 });

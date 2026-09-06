@@ -1,4 +1,15 @@
-import { Children, isValidElement } from 'react';
+import { Children, cloneElement, Fragment, isValidElement } from 'react';
+
+// React.Children does not expand fragments; keep rendering and schema traversal in sync.
+export function flattenConditionChildren(children) {
+  return Children.toArray(children).flatMap((child) => (
+    isValidElement(child) && child.type === Fragment
+      ? flattenConditionChildren(child.props.children).map((item, index) => (
+        isValidElement(item) ? cloneElement(item, { key: `${child.key}/${item.key ?? index}` }) : item
+      ))
+      : [child]
+  ));
+}
 
 const RUNTIME_FIELD_PROPS = new Set([
   'changeEventName',
@@ -59,8 +70,10 @@ export function createRowsFromChildren(children) {
 
       const kind = node.type.conditionKind;
       if (kind === 'row') {
-        const { children: rowChildren, toggle: ignoredRowToggle, ...rowProps } = node.props;
-        void ignoredRowToggle;
+        const {
+          children: rowChildren, toggle, className, style, fullWidth, labelPlacement, detailOpen,
+          ...rowProps
+        } = node.props;
         const row = {
           ...rowProps,
           key: rowProps.rowKey || rowProps.label,
@@ -77,6 +90,7 @@ export function createRowsFromChildren(children) {
           children: groupChildren,
           className,
           groupClassName,
+          style,
           toggle,
           ...groupProps
         } = node.props;

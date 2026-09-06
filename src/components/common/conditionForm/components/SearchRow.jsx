@@ -1,19 +1,25 @@
-import { Children, useContext } from 'react';
-import { Col, Row, Space, Typography } from 'antd';
+import { useContext } from 'react';
+import { Typography } from 'antd';
 import { useFormContext, useWatch } from 'react-hook-form';
-import SearchGroup from './SearchGroup';
+import { flattenConditionChildren } from '../model/composition';
+import useSearchRowLayout from '../hooks/useSearchRowLayout';
 import {
   ConditionDisabledContext,
   DetailVisibilityContext,
 } from '../model/SearchConditionContext';
 
-export default function SearchRow({ label, required, detail, detailOpen, children }) {
+export default function SearchRow({
+  label, required, detail, detailOpen, children,
+  className, style, fullWidth = false, labelPlacement = 'auto',
+}) {
   const { control } = useFormContext();
   const contextDetailOpen = useContext(DetailVisibilityContext);
   const isDetailOpen = detailOpen ?? contextDetailOpen;
-  const childItems = Children.toArray(children);
-  const groups = childItems.filter((child) => child.type === SearchGroup);
-  const fields = childItems.filter((child) => child.type !== SearchGroup);
+  const hidden = Boolean(detail && !isDetailOpen);
+  const { rowRef, labelRef, contentRef, placement } = useSearchRowLayout(labelPlacement, hidden);
+  const childItems = flattenConditionChildren(children);
+  const groups = childItems.filter((child) => child.type?.conditionKind === 'group');
+  const fields = childItems.filter((child) => child.type?.conditionKind !== 'group');
   const rowControlGroups = groups.filter((group) => group.props.toggle?.controlRow);
 
   if (rowControlGroups.length > 1) {
@@ -29,26 +35,31 @@ export default function SearchRow({ label, required, detail, detailOpen, childre
   const rowDisabled = Boolean(rowControlToggleName) && !Boolean(rowEnabled);
 
   return (
-    <Row
-      align="middle"
-      className={`flex-group condition-row${detail && !isDetailOpen ? ' condition-row--hidden' : ''}`}
-      wrap={false}
+    <div
+      ref={rowRef}
+      className={['flex-group condition-row', hidden && 'condition-row--hidden', className].filter(Boolean).join(' ')}
+      style={style}
+      hidden={hidden}
+      data-label-placement={placement}
+      data-label-mode={labelPlacement}
+      data-full-width={fullWidth || undefined}
+      data-has-label={Boolean(label || required)}
     >
-      <Col className="category-name condition-row__label" flex="112px">
+      <div ref={labelRef} className="category-name condition-row__label">
         {label && <Typography.Text strong>{label}</Typography.Text>}
         {required && <span className="required-mark" aria-label="필수">*</span>}
-      </Col>
+      </div>
       <ConditionDisabledContext.Provider value={rowDisabled}>
-        <Row className="category-list condition-row__groups" align="middle" wrap>
+        <div ref={contentRef} className="category-list condition-row__groups">
           {fields.length > 0 && (
-            <Col className="category-item condition-group condition-group--ungrouped" flex="none">
-              <Space align="start" size={8} wrap>{fields}</Space>
-            </Col>
+            <div className="category-item condition-group condition-group--ungrouped">
+              <div className="condition-group__fields">{fields}</div>
+            </div>
           )}
           {groups}
-        </Row>
+        </div>
       </ConditionDisabledContext.Provider>
-    </Row>
+    </div>
   );
 }
 

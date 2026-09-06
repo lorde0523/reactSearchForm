@@ -1,6 +1,6 @@
 # React 조회조건 폼
 
-Ant Design의 `Form`, `Row`, `Col`과 react-hook-form을 결합한 공통 조회조건 폼입니다.
+Ant Design의 `Form`, 입력 컴포넌트와 react-hook-form을 결합한 공통 조회조건 폼입니다.
 화면별 조회 필드는 JSX로 자유롭게 조립하고, 값 관리·검증·초기화·즐겨찾기 저장과 복원은 공통 모듈이 담당합니다.
 
 > 모든 소스는 JavaScript/JSX로 작성되어 있습니다.
@@ -9,7 +9,7 @@ Ant Design의 `Form`, `Row`, `Col`과 react-hook-form을 결합한 공통 조회
 
 - `FormProvider`와 `Controller` 기반의 일관된 폼 상태 관리
 - `SearchRow` → `SearchGroup` → 필드 형태의 JSX composition
-- Ant Design `Row`, `Col`, `Form.Item` 기반 레이아웃
+- 선택형 `SearchRowFlow`와 CSS로 확장하는 반응형 레이아웃
 - 조회조건 초기화, 조회, 상세검색 공통 처리
 - 조회조건 즐겨찾기 저장 모달과 저장값 복원
 - 날짜·주차·월·연도 값의 직렬화와 역직렬화
@@ -37,6 +37,7 @@ pnpm build
 src/components/common/conditionForm/
 ├─ components/
 │  ├─ SearchConditionForm.jsx
+│  ├─ SearchRowFlow.jsx
 │  ├─ SearchRow.jsx
 │  ├─ SearchGroup.jsx
 │  └─ SaveConditionModal.jsx
@@ -47,6 +48,7 @@ src/components/common/conditionForm/
 │  ├─ DateFields.jsx
 │  └─ CustomField.jsx
 ├─ hooks/
+│  ├─ useSearchRowLayout.js
 │  └─ useSearchConditionShare.js
 ├─ model/
 │  ├─ composition.js
@@ -121,21 +123,89 @@ FormProvider
 조회조건 본문은 아래 구조로 반복됩니다.
 
 ```text
-Row.flex-group.condition-row
-├─ Col.category-name                 Row 라벨
-└─ Row.category-list
-   └─ Col.category-item
-      └─ Form.Item                   Group 라벨
-         └─ 필드들
+div.condition-row-flow              선택형 가로 배치 래퍼
+└─ div.flex-group.condition-row
+   ├─ div.category-name.condition-row__label    Row 라벨
+   └─ div.category-list.condition-row__groups
+      └─ div.category-item.condition-group
+         └─ Form.Item                          Group 라벨
+            └─ div.condition-group__fields     한 줄로 유지하는 필드들
 ```
 
-- `SearchRow.label`: 행의 가장 왼쪽 라벨
+- `SearchRow.label`: 가로 배치에서는 왼쪽, 세로 배치에서는 위쪽 라벨
 - `SearchGroup.label`: 그룹 내부 `Form.Item` 라벨
 - 그룹 없는 필드: 같은 Row의 기본 영역에 함께 배치
-- 라벨 없는 `SearchRow`: 화면에는 빈 라벨 영역을 유지하고 저장 모달에서는 내부 그룹 라벨 사용
+- 라벨 없는 `SearchRow`: 가로 배치에서는 라벨 여백을 유지하고, 세로 배치에서는 제거합니다. 저장 모달에서는 내부 그룹 라벨을 사용합니다.
 - 라벨 없는 그룹들: 저장 모달에서 Row 라벨 아래 한 칸으로 합치고 그룹별 줄바꿈
 
 ## Row와 Group
+
+### 선택형 SearchRowFlow와 반응형 배치
+
+`SearchRowFlow`는 여러 SearchRow를 한 줄에 함께 배치할 때 사용합니다. 필수 래퍼가 아니며, 래퍼 없이 선언한 SearchRow는 각각 별도의 행을 차지합니다. Flow는 폼값·저장 메타데이터·상세검색·행 제어 범위에 관여하지 않습니다.
+
+```jsx
+import { SearchRowFlow, SearchRow, SearchGroup, TextField } from '@/components/common/conditionForm';
+
+<SearchRowFlow gap={24} className="order-flow">
+  <SearchRow rowKey="customer" label="고객명">
+    <TextField name="customerName" label="고객명" width={160} />
+  </SearchRow>
+  <SearchRow rowKey="manager" label="담당자">
+    <TextField name="managerName" label="담당자" width={160} />
+  </SearchRow>
+  <SearchRow rowKey="extra" label="추가 조건" fullWidth>
+    <SearchGroup label="코드"><TextField name="code" label="코드" /></SearchGroup>
+    <SearchGroup label="지역"><TextField name="region" label="지역" /></SearchGroup>
+  </SearchRow>
+</SearchRowFlow>
+```
+
+| API | 기본값 | 역할 |
+| --- | --- | --- |
+| `SearchRowFlow.gap` | `16px` | 숫자(px) 또는 CSS 길이 문자열. `"12px 24px"`로 세로·가로 간격을 따로 지정할 수 있습니다. |
+| `SearchRowFlow.className`, `style` | — | 배치 컨테이너 스타일. `style`로 지정한 CSS 변수가 `gap`보다 우선합니다. |
+| `SearchRow.fullWidth` | `false` | Flow에서 전체 너비 사용. 기본 Grid 확장 예제에서는 모든 열을 차지합니다. |
+| `SearchRow.labelPlacement` | `"auto"` | `auto`: 실제 내용 너비에 따라 좌측/상단 전환. `inline`: 좌측 유지. `stacked`: 상단 유지. |
+| `SearchRow.className`, `style` | — | 행 바깥쪽 스타일. |
+| `SearchGroup.groupClassName`, `style` | — | 그룹 바깥쪽 스타일. 기존 `className`은 내부 Form.Item에 적용합니다. |
+
+기본 Flex 배치는 내용에 필요한 너비만큼 SearchRow를 배치하고 공간이 부족하면 행 전체를 다음 줄로 넘깁니다. 한 SearchRow의 내용도 가용 너비보다 길면 라벨을 위로 올리고, 내용은 라벨의 들여쓰기 없이 행 왼쪽에서 시작합니다. 브라우저 너비뿐 아니라 사이드바·부모 컨테이너 크기 변경도 반영합니다.
+
+그룹은 **그룹 단위로만 줄바꿈**하며 그룹 내부 라벨과 필드는 한 줄로 유지합니다. 그룹 밖의 직접 전달 필드는 기존처럼 하나의 묶음으로 처리합니다. 한 그룹 자체가 가용 너비보다 넓은 구성은 기획에서 제외하는 전제입니다. 공통 폼은 가로 스크롤·강제 축소·잘라내기를 추가하지 않으므로 그런 구성은 바깥으로 넘칠 수 있습니다. 필요한 경우 화면에서 그룹을 더 작은 단위로 나누어 주세요.
+
+### 퍼블리셔용 스타일 확장
+
+폼 상태 로직과 배치 스타일은 분리되어 있습니다. `labelPlacement="inline"` 또는 `"stacked"`에서는 크기를 측정하지 않습니다. CSS container query로만 전환하려면 `inline`으로 지정하고 `className`에서 행 방향·내용 너비를 직접 정의할 수 있습니다.
+
+| CSS 변수 | 기본값 |
+| --- | --- |
+| `--condition-flow-gap` | `16px` |
+| `--condition-row-label-width` | `112px` |
+| `--condition-row-label-gap` | `16px` |
+| `--condition-row-stack-gap` | `8px` |
+| `--condition-row-padding` | `16px` |
+| `--condition-group-gap` / `--condition-group-row-gap` | `24px` / `12px` |
+| `--condition-group-label-width` / `--condition-group-label-gap` | `68px` / `10px` |
+| `--condition-field-gap` | `8px` |
+
+공통 CSS 이후에 화면 CSS를 선언하면 다음처럼 Grid로 변경할 수 있습니다. 열의 최소 너비는 해당 화면의 그룹 크기에 맞춰 정합니다.
+
+```css
+.order-flow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  --condition-row-label-width: 96px;
+  --condition-group-gap: 20px;
+}
+.order-flow > .condition-row { width: 100%; }
+```
+
+`data-label-placement="inline|stacked"`는 실제 배치 상태, `data-label-mode`는 요청한 정책, `data-full-width`는 전체 너비 여부를 나타냅니다. 자동 배치의 `--condition-row-intrinsic-width`는 내부 측정값이므로 직접 지정하지 않습니다. 자동 배치에서는 라벨 너비와 가로 간격을 두 상태에서 동일하게 유지해야 안정적으로 판정됩니다. 구조 자체를 바꾸는 퍼블리싱은 명시적 라벨 정책을 사용하세요.
+
+테마 변수 `--condition-surface`, `--condition-surface-muted`, `--condition-border`, `--condition-text`, `--condition-text-muted`, `--condition-radius`로 공통 표면을 변경할 수 있습니다. 입력·버튼·팝업 색상은 화면의 Ant Design `ConfigProvider.theme`에서 함께 변경합니다.
+
+기존 `.flex-group`, `.category-name`, `.category-list`, `.category-item` 클래스는 유지합니다. 기존 Row/Col/Space에 의존한 `.ant-col`, `.ant-space` 선택자는 새로운 `.condition-row__label`, `.condition-row__groups`, `.condition-group__fields` 선택자로 옮겨야 합니다.
 
 ### 상세검색 Row
 
@@ -858,7 +928,8 @@ function OrderSearchTab({ conditionShare, onRestoreStateChange }) {
 - `style`, `className`: 실제 입력 컴포넌트
 - `formItemStyle`, `formItemClassName`: 필드를 감싼 `Form.Item`
 - `SearchGroup.className`: 그룹의 `Form.Item`
-- `SearchGroup.groupClassName`: 그룹 바깥쪽 `Col`
+- `SearchGroup.groupClassName`: 그룹 바깥쪽 `div.condition-group`
+- `SearchGroup.style`: 그룹 바깥쪽 `div.condition-group`의 인라인 스타일
 - `width`와 `style.width`를 함께 사용하면 `style.width` 우선
 
 전체 동작 예시는 [SearchConditionExample.jsx](./src/examples/SearchConditionExample.jsx)에서 확인할 수 있습니다.

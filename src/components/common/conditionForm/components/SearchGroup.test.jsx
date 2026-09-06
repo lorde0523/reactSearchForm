@@ -10,6 +10,7 @@ import {
 } from './SaveConditionModal';
 import SearchGroup from './SearchGroup';
 import SearchRow from './SearchRow';
+import SearchRowFlow from './SearchRowFlow';
 
 globalThis.React = React;
 
@@ -115,4 +116,33 @@ describe('saved condition value', () => {
       .toEqual({ status: 'done' });
   });
 
+});
+
+
+describe('SearchRowFlow row boundaries', () => {
+  it('Fragment 내부 controlRow는 자기 행만 비활성화하고 다음 행에는 영향을 주지 않는다', () => {
+    const html = renderToStaticMarkup(
+      <AntdApp>
+        <SearchConditionForm>
+          <SearchRowFlow>
+            <SearchRow label="첫째">
+              <>
+                <SearchGroup label="고객" toggle={{ name: 'useCustomer', controlRow: true }}>
+                  <TextField name="customer" label="고객" />
+                </SearchGroup>
+                <SearchGroup label="채널"><TextField name="channel" label="채널" /></SearchGroup>
+              </>
+            </SearchRow>
+            <SearchRow label="둘째"><TextField name="other" label="다른 행" /></SearchRow>
+          </SearchRowFlow>
+        </SearchConditionForm>
+      </AntdApp>,
+    );
+    const input = (label) => html.match(new RegExp(`<input(?=[^>]+aria-label="${label}")[^>]*>`))?.[0];
+    expect(input('고객')).toContain('disabled');
+    expect(input('채널')).toContain('disabled');
+    expect(input('다른 행')).toBeDefined();
+    expect(input('다른 행')).not.toContain('disabled');
+    expect(html.match(/<input(?=[^>]+type="checkbox")[^>]*>/)?.[0]).not.toContain('disabled');
+  });
 });

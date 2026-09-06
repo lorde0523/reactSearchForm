@@ -13,6 +13,7 @@ import {
   SearchConditionForm,
   SearchGroup,
   SearchRow,
+  SearchRowFlow,
   SelectField,
   SwitchField,
   TextAreaField,
@@ -78,54 +79,45 @@ export default function SearchConditionExample({
       onSearch={onSearch}
       tabKey={tabKey}
     >
-      <SearchRow rowKey="basic" label="기본 조건" required>
-        <TextField
-          name="keyword"
-          label="통합 검색"
-          width={170}
-          placeholder="고객명 또는 번호"
-        />
-
-        <SearchGroup
-          groupKey="period"
-          label="조회 기간"
-          className="period-group-form-item"
-          toggle={{
-            name: 'usePeriod',
-            label: '조회 기간 사용',
-            checkedText: '사용',
-          }}
-        >
-          <SelectField
-            autoSelectFirst
-            name="dateType"
-            label="날짜 기준"
-            width={118}
-            placeholder="날짜 기준"
-            options={dateTypeOptions}
-            onChange={(_, { form }) => {
-              form.setValue('period', undefined, { shouldDirty: true });
-            }}
-          />
-          <DateRangeField
-            name="period"
+      <SearchRowFlow gap={24}>
+        <SearchRow rowKey="basic" label="기본 조건" required>
+          <TextField name="keyword" label="통합 검색" width={170} placeholder="고객명 또는 번호" />
+        </SearchRow>
+        <SearchRow rowKey="status" label="진행 상태">
+          <SelectField name="status" label="진행 상태" width={140} placeholder="전체" options={statusOptions} />
+        </SearchRow>
+        <SearchRow rowKey="period" label="기간 조건" fullWidth>
+          <SearchGroup
+            groupKey="period"
             label="조회 기간"
-            width={250}
-            dependencies={['dateType']}
-            disabled={({ values }) => !values.dateType}
-          />
-        </SearchGroup>
-
-        <SearchGroup groupKey="status" label="진행 상태">
-          <SelectField
-            name="status"
-            label="진행 상태"
-            width={140}
-            placeholder="전체"
-            options={statusOptions}
-          />
-        </SearchGroup>
-      </SearchRow>
+            className="period-group-form-item"
+            toggle={{
+              name: 'usePeriod',
+              label: '조회 기간 사용',
+              checkedText: '사용',
+            }}
+          >
+            <SelectField
+              autoSelectFirst
+              name="dateType"
+              label="날짜 기준"
+              width={118}
+              placeholder="날짜 기준"
+              options={dateTypeOptions}
+              onChange={(_, { form }) => {
+                form.setValue('period', undefined, { shouldDirty: true });
+              }}
+            />
+            <DateRangeField
+              name="period"
+              label="조회 기간"
+              width={250}
+              dependencies={['dateType']}
+              disabled={({ values }) => !values.dateType}
+            />
+          </SearchGroup>
+        </SearchRow>
+      </SearchRowFlow>
 
       <SearchRow rowKey="customer">
         <SearchGroup

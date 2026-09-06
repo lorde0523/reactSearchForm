@@ -164,10 +164,17 @@ export default function App() {
       locale={koKR}
       theme={{
         token: {
-          colorPrimary: '#1677ff',
-          borderRadius: 6,
+          colorPrimary: '#3f3f46',
+          borderRadius: 8,
           controlHeight: 32,
-          colorBgLayout: '#f4f6f9',
+          colorBgLayout: '#f4f4f5',
+          colorText: '#27272a',
+          colorTextSecondary: '#71717a',
+          colorBorder: '#d4d4d8',
+          colorBorderSecondary: '#e4e4e7',
+          colorFillAlter: '#f7f7f8',
+          colorLink: '#52525b',
+          colorLinkHover: '#18181b',
         },
       }}
     >

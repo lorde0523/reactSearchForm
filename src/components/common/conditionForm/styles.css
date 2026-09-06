@@ -1,92 +1,154 @@
-.search-panel {
-  overflow: hidden;
-  min-height: 124px;
-  background: #fff;
-  border: 1px solid #d9dee8;
-  border-radius: 8px;
-  box-shadow: 0 3px 12px rgb(31 45 61 / 5%);
+/* Public presentation tokens; consumers can override these on any form/flow/row. */
+:root {
+  --condition-surface: #ffffff;
+  --condition-surface-muted: #f7f7f8;
+  --condition-border: #e4e4e7;
+  --condition-text: #27272a;
+  --condition-text-muted: #71717a;
+  --condition-radius: 12px;
 }
 
-.search-panel__layout { display: flex; width: 100%; min-height: 124px; }
-.favorite-box, .search-actions { padding: 16px; background: #fbfcfe; }
-.favorite-box { width: 220px; flex: 0 0 220px; border-right: 1px solid #e4e8ef; }
-.favorite-box__heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.favorite-box .ant-btn { padding-inline: 4px; color: #d89614; }
-.favorite-box__select { width: 100%; margin-top: 10px; }
-
-.condition-box { min-width: 0; flex: 1 1 auto; padding: 12px 18px; }
-.condition-row { display: flex; min-height: 48px; align-items: center; border-bottom: 1px solid #edf0f4; }
-.condition-row:last-child { border-bottom: 0; }
-.condition-row--hidden { display: none; }
-
-.condition-row__label {
+.search-panel {
+  container-type: inline-size;
+  background: var(--condition-surface);
+  border: 1px solid var(--condition-border);
+  border-radius: var(--condition-radius);
+  box-shadow: 0 4px 20px rgb(24 24 27 / 4%);
+}
+.search-panel__layout { display: flex; min-width: 0; flex-direction: column; }
+.favorite-box {
   display: flex;
   align-items: center;
-  align-self: stretch;
-  width: 112px;
-  flex: 0 0 112px;
-  padding-right: 16px;
-  color: #283348;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 16px 20px;
+  background: var(--condition-surface-muted);
+  border-bottom: 1px solid var(--condition-border);
+  border-radius: var(--condition-radius) var(--condition-radius) 0 0;
+}
+.favorite-box__heading { display: flex; align-items: center; gap: 12px; }
+.favorite-box .ant-btn { color: var(--condition-text-muted); }
+.favorite-box__select { width: 260px; max-width: 100%; }
+.condition-box { min-width: 0; padding: 4px 20px; }
+
+/* Flow is optional. Override display/grid-template-columns/flex in publisher CSS. */
+.condition-row-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--condition-flow-gap, 16px);
+  min-width: 0;
+}
+.condition-row {
+  display: flex;
+  align-items: flex-start;
+  column-gap: var(--condition-row-label-gap, 16px);
+  row-gap: var(--condition-row-stack-gap, 8px);
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  padding-block: var(--condition-row-padding, 16px);
+  border-bottom: 1px solid var(--condition-border);
+}
+:where(.condition-row-flow) > .condition-row {
+  flex: 0 1 auto;
+  width: var(--condition-row-intrinsic-width, max-content);
+  max-width: 100%;
+}
+:where(.condition-row-flow) > .condition-row[data-full-width] { width: 100%; flex-basis: 100%; grid-column: 1 / -1; }
+.condition-row[hidden] { display: none; }
+.condition-row[data-label-placement='stacked'] { flex-direction: column; }
+.condition-row__label {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  box-sizing: border-box;
+  width: var(--condition-row-label-width, 112px);
+  min-height: 32px;
+  color: var(--condition-text);
   white-space: nowrap;
 }
-
-.required-mark { margin-left: 4px; color: #ff4d4f; }
-.condition-row__groups { display: flex; min-width: 0; flex: 1; align-items: flex-start; flex-wrap: wrap; gap: 8px 28px; padding: 7px 0; }
-.condition-group { min-width: 0; }
-.condition-group--ungrouped { display: flex; align-items: flex-start; }
-.condition-group--labeled { display: block; }
-.condition-group__row { min-width: 0; }
-.condition-group__toggle { padding-top: 6px; }
-.condition-group__toggle .condition-field { margin: 0; }
-.condition-group__body { min-width: 0; }
+.condition-row[data-label-placement='stacked'] .condition-row__label { min-height: 24px; }
+.condition-row[data-label-placement='stacked'][data-has-label='false'] .condition-row__label {
+  /* Keep its width measurable without reserving a blank line. */
+  position: absolute;
+  height: 0;
+  min-height: 0;
+  visibility: hidden;
+}
+.required-mark { margin-left: 4px; color: #dc2626; }
+.condition-row__groups {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--condition-group-row-gap, 12px) var(--condition-group-gap, 24px);
+}
+.condition-row[data-label-placement='stacked'] .condition-row__groups { width: 100%; }
+.condition-group { flex: 0 0 auto; width: max-content; }
+.condition-group__row { display: flex; align-items: flex-start; gap: var(--condition-field-gap, 8px); }
+.condition-group__toggle { flex: none; padding-top: 5px; }
+.condition-group__body { flex: none; }
+.condition-group__fields { display: flex; align-items: flex-start; flex-wrap: nowrap; gap: var(--condition-field-gap, 8px); }
+.condition-group__fields > * { flex: 0 0 auto; }
 .condition-group__form-item { margin: 0; }
-.condition-group__form-item > .ant-form-item-row { align-items: flex-start; flex-wrap: nowrap; }
-.condition-group__form-item > .ant-form-item-row > .ant-form-item-label { padding: 6px 10px 0 0; white-space: nowrap; }
-.condition-group__form-item > .ant-form-item-row > .ant-form-item-label > label { color: #526079; font-size: 13px; font-weight: 600; }
-.condition-group__form-item > .ant-form-item-row > .ant-form-item-control { min-width: 0; }
+.condition-group__form-item > .ant-form-item-row { display: flex; align-items: flex-start; flex-flow: row nowrap; }
+.condition-group__form-item > .ant-form-item-row > .ant-form-item-label {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: var(--condition-group-label-width, 68px);
+  max-width: none;
+  padding: 0 var(--condition-group-label-gap, 10px) 0 0;
+  white-space: nowrap;
+  text-align: start;
+}
+.condition-group__form-item > .ant-form-item-row > .ant-form-item-label > label {
+  height: 32px;
+  color: var(--condition-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.condition-group__form-item > .ant-form-item-row > .ant-form-item-control { flex: 0 0 auto; width: auto; max-width: none; }
 .condition-field { margin: 0; }
+/* Fields have no Form.Item label. Avoid nested vertical grid flex-basis: 0
+   collapsing their height inside a max-content group. */
+.condition-field > .ant-form-item-row { display: block; }
+.condition-field > .ant-form-item-row > .ant-form-item-control { width: 100%; max-width: none; }
 .condition-field .ant-form-item-explain { max-width: 220px; font-size: 12px; }
 
-.search-actions { display: flex; width: 126px; flex: 0 0 126px; flex-direction: column; justify-content: center; gap: 8px; border-left: 1px solid #e4e8ef; }
-.search-actions .ant-btn-text { color: #4c5a70; }
+.search-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  background: var(--condition-surface-muted);
+  border-radius: 0 0 var(--condition-radius) var(--condition-radius);
+}
+.search-actions .ant-btn { width: auto; min-width: 96px; }
+.search-actions .ant-btn-text { color: var(--condition-text-muted); }
+.search-panel .ant-btn { transition: background-color 150ms, border-color 150ms, box-shadow 150ms; }
 
 .save-modal__name { display: flex; align-items: center; gap: 12px; margin: 8px 0 20px; }
 .save-modal__name > .ant-typography { width: 90px; flex: 0 0 90px; }
 .save-modal__name > .ant-input-affix-wrapper { flex: 1; }
 .save-modal__divider { margin: 20px 0 14px; }
 .save-modal__footer { display: flex; justify-content: flex-end; gap: 8px; }
-.save-preview { overflow: hidden; border-radius: 6px; }
-.save-preview__empty { padding: 36px 16px; color: #8c8c8c; text-align: center; border: 1px solid #d9dee8; border-radius: 6px; }
-.save-preview .ant-table { border-radius: 6px; }
-.save-preview__label { background: #f7f9fc; font-weight: 700; }
+.save-preview { overflow: hidden; border-radius: 8px; }
+.save-preview__empty { padding: 36px 16px; color: var(--condition-text-muted); text-align: center; border: 1px solid var(--condition-border); border-radius: 8px; }
+.save-preview .ant-table { border-radius: 8px; }
+.save-preview__label { background: var(--condition-surface-muted); font-weight: 600; }
 .save-preview__line + .save-preview__line { margin-top: 6px; }
 .save-preview__more { height: auto; padding: 0 0 0 8px; }
 
-@media (max-width: 1100px) {
-  .search-panel__layout { flex-wrap: wrap; }
-  .favorite-box { width: 25%; flex-basis: 25%; }
-  .condition-box { width: 75%; flex-basis: 75%; }
-  .search-actions { width: 100%; flex-basis: 100%; flex-direction: row; padding: 10px 16px; border-top: 1px solid #e4e8ef; border-left: 0; }
-  .search-actions .ant-btn { width: auto; min-width: 116px; }
+@container (max-width: 640px) {
+  .favorite-box { gap: 8px; padding: 12px; }
+  .favorite-box__heading { justify-content: space-between; width: 100%; }
+  .favorite-box__select { width: 100%; }
+  .condition-box { padding-inline: 12px; }
+  .search-actions { padding: 12px; }
 }
-
-@media (max-width: 760px) {
-  .search-panel__layout { display: block; }
-  .favorite-box, .condition-box, .search-actions { width: 100%; }
-  .favorite-box { border-right: 0; border-bottom: 1px solid #e4e8ef; }
-  .condition-row { display: block; padding: 8px 0 12px; }
-  .condition-row__label { min-height: 32px; }
-  .condition-group { width: 100%; }
-  .condition-row__groups { display: block; }
-  .condition-group { display: block; margin-bottom: 10px; }
-  .condition-group__form-item > .ant-form-item-row { display: block; }
-  .condition-group__form-item > .ant-form-item-row > .ant-form-item-label,
-  .condition-group__form-item > .ant-form-item-row > .ant-form-item-control { width: 100%; max-width: 100%; flex: none !important; }
-  .condition-group__form-item > .ant-form-item-row > .ant-form-item-label { padding: 0 0 6px; }
-  .condition-group .ant-space,
-  .condition-group .ant-picker,
-  .condition-group .ant-select,
-  .condition-group .ant-input,
-  .condition-group .ant-input-affix-wrapper,
-  .condition-group .ant-input-number { width: 100% !important; }
+@media (prefers-reduced-motion: reduce) {
+  .search-panel .ant-btn { transition: none; }
 }
